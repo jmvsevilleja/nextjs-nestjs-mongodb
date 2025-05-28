@@ -20,9 +20,12 @@ import {
 import { Input } from "@/components/ui/input";
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }).optional(),
+  name: z
+    .string()
+    .min(2, {
+      message: "Name must be at least 2 characters.",
+    })
+    .optional(),
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
@@ -39,12 +42,10 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(
-      mode === "signin" 
-        ? formSchema.omit({ name: true }) 
-        : formSchema
+      mode === "signin" ? formSchema.omit({ name: true }) : formSchema
     ),
     defaultValues: {
       name: "",
@@ -56,7 +57,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     setError(null);
-    
+
     if (mode === "signin") {
       try {
         const result = await signIn("credentials", {
@@ -64,16 +65,16 @@ export function AuthForm({ mode }: AuthFormProps) {
           password: values.password,
           redirect: false,
         });
-        
+
         if (result?.error) {
           setError(result.error);
           setIsLoading(false);
           return;
         }
-        
+
         router.push("/dashboard");
         router.refresh();
-      } catch (error) {
+      } catch {
         setError("An unexpected error occurred. Please try again.");
         setIsLoading(false);
       }
@@ -106,31 +107,31 @@ export function AuthForm({ mode }: AuthFormProps) {
             },
           }),
         });
-        
+
         const data = await response.json();
-        
+
         if (data.errors) {
           setError(data.errors[0].message);
           setIsLoading(false);
           return;
         }
-        
+
         // Sign in the user
         const result = await signIn("credentials", {
           email: values.email,
           password: values.password,
           redirect: false,
         });
-        
+
         if (result?.error) {
           setError(result.error);
           setIsLoading(false);
           return;
         }
-        
+
         router.push("/dashboard");
         router.refresh();
-      } catch (error) {
+      } catch {
         setError("An unexpected error occurred. Please try again.");
         setIsLoading(false);
       }
@@ -149,13 +150,13 @@ export function AuthForm({ mode }: AuthFormProps) {
             : "Fill out the form below to create your account"}
         </p>
       </div>
-      
+
       {error && (
         <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
-      
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {mode === "signup" && (
@@ -166,14 +167,18 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} disabled={isLoading} />
+                    <Input
+                      placeholder="John Doe"
+                      {...field}
+                      disabled={isLoading}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           )}
-          
+
           <FormField
             control={form.control}
             name="email"
@@ -181,13 +186,17 @@ export function AuthForm({ mode }: AuthFormProps) {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="example@example.com" {...field} disabled={isLoading} />
+                  <Input
+                    placeholder="example@example.com"
+                    {...field}
+                    disabled={isLoading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="password"
@@ -195,29 +204,36 @@ export function AuthForm({ mode }: AuthFormProps) {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="••••••••" {...field} disabled={isLoading} />
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    {...field}
+                    disabled={isLoading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
+
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {mode === "signin" ? "Sign In" : "Sign Up"}
           </Button>
         </form>
       </Form>
-      
+
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t"></div>
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+          <span className="bg-background px-2 text-muted-foreground">
+            Or continue with
+          </span>
         </div>
       </div>
-      
+
       <Button
         variant="outline"
         type="button"

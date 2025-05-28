@@ -28,6 +28,15 @@ import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "next-auth/react";
 
+interface Todo {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const GET_TODOS = gql`
   query GetTodos($offset: Int, $limit: Int) {
     todos(offset: $offset, limit: $limit) {
@@ -281,7 +290,7 @@ export default function DashboardPage() {
             ) : (
               <>
                 <div className="divide-y rounded-lg border bg-card">
-                  {data?.todos?.todos.map((todo) => (
+                  {data?.todos?.todos.map((todo: Todo) => (
                     <div
                       key={todo.id}
                       className="flex items-start justify-between p-4"
