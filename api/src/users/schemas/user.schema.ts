@@ -7,12 +7,17 @@ export type UserDocument = HydratedDocument<User>;
   timestamps: true,
   toJSON: {
     transform: (_, ret) => {
-      delete ret.password;
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
       return ret;
     },
   },
 })
 export class User {
+  @Prop()
+  id: string;
+
   @Prop({ required: true })
   name: string;
 
@@ -30,6 +35,15 @@ export class User {
 
   @Prop()
   profilePicture?: string;
+
+  @Prop()
+  refreshToken?: string;
+
+  @Prop({ type: Date, default: Date.now })
+  createdAt: Date;
+
+  @Prop({ type: Date, default: Date.now })
+  updatedAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

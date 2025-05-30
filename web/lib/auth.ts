@@ -30,6 +30,7 @@ export const authOptions: NextAuthOptions = {
                 mutation Login($input: LoginInput!) {
                   login(input: $input) {
                     accessToken
+                    refreshToken
                     user {
                       id
                       name
@@ -50,11 +51,13 @@ export const authOptions: NextAuthOptions = {
 
           const data = await response.json();
 
+          console.log("data", data);
+
           if (data.errors) {
             throw new Error(data.errors[0].message);
           }
 
-          const { accessToken, user } = data.data.login;
+          const { accessToken, refreshToken, user } = data.data.login;
 
           return {
             id: user.id,
@@ -62,6 +65,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             image: user.profilePicture,
             accessToken,
+            refreshToken,
           };
         } catch (error) {
           console.error("Authorization error:", error);
@@ -85,6 +89,7 @@ export const authOptions: NextAuthOptions = {
                 mutation GoogleLogin($idToken: String!) {
                   googleLogin(idToken: $idToken) {
                     accessToken
+                    refreshToken
                     user {
                       id
                       name
@@ -106,9 +111,14 @@ export const authOptions: NextAuthOptions = {
             throw new Error(data.errors[0].message);
           }
 
-          const { accessToken, user: googleUser } = data.data.googleLogin;
+          const {
+            accessToken,
+            refreshToken,
+            user: googleUser,
+          } = data.data.googleLogin;
 
           token.accessToken = accessToken;
+          token.refreshToken = refreshToken;
           token.id = googleUser.id;
         } catch (error) {
           console.error("Google login error:", error);
@@ -118,7 +128,49 @@ export const authOptions: NextAuthOptions = {
       // Initial sign in with credentials
       if (user && "accessToken" in user) {
         token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
         token.id = user.id;
+      }
+
+      // Check if access token needs to be refreshed
+      if (token.accessToken) {
+        const tokenExpiry = JSON.parse(
+          atob(token.accessToken.split(".")[1])
+        ).exp;
+        const shouldRefresh =
+          Math.floor((tokenExpiry * 1000 - Date.now()) / 1000) < 60;
+
+        if (shouldRefresh && token.refreshToken) {
+          try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                query: `
+                  mutation RefreshTokens($refreshToken: String!) {
+                    refreshTokens(refreshToken: $refreshToken) {
+                      accessToken
+                      refreshToken
+                    }
+                  }
+                `,
+                variables: {
+                  refreshToken: token.refreshToken,
+                },
+              }),
+            });
+
+            const data = await response.json();
+            if (!data.errors) {
+              token.accessToken = data.data.refreshTokens.accessToken;
+              token.refreshToken = data.data.refreshTokens.refreshToken;
+            }
+          } catch (error) {
+            console.error("Token refresh error:", error);
+          }
+        }
       }
 
       return token;
@@ -126,12 +178,36 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token.accessToken) {
         session.accessToken = token.accessToken as string;
+        session.refreshToken = token.refreshToken as string;
+
         if (token.id) {
           session.user.id = token.id as string;
         }
       }
 
       return session;
+    },
+  },
+  events: {
+    async signOut({ token }) {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token.accessToken}`,
+          },
+          body: JSON.stringify({
+            query: `
+              mutation Logout {
+                logout
+              }
+            `,
+          }),
+        });
+      } catch (error) {
+        console.error("Logout error:", error);
+      }
     },
   },
   pages: {

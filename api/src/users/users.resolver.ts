@@ -11,13 +11,15 @@ export class UsersResolver {
 
   @UseGuards(JwtAuthGuard)
   @Query(() => User, { name: 'me' })
-  async getMe(@CurrentUser() user: any): Promise<User> {
+  async getMe(@CurrentUser() user: any): Promise<User | null> {
     return this.usersService.findOneById(user.id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Query(() => User, { name: 'user', nullable: true })
-  async getUser(@Args('id', { type: () => ID }) id: string): Promise<User> {
+  async getUser(
+    @Args('id', { type: () => ID }) id: string,
+  ): Promise<User | null> {
     return this.usersService.findOneById(id);
   }
 }

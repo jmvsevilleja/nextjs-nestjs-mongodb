@@ -8,45 +8,59 @@ import { TodoPaginationArgs } from './dto/todo-pagination.args';
 
 @Injectable()
 export class TodosService {
-  constructor(
-    @InjectModel(Todo.name) private todoModel: Model<TodoDocument>,
-  ) {}
+  constructor(@InjectModel(Todo.name) private todoModel: Model<TodoDocument>) {}
 
-  async create(createTodoInput: CreateTodoInput, userId: string): Promise<Todo> {
+  async create(
+    createTodoInput: CreateTodoInput,
+    userId: string,
+  ): Promise<Todo> {
     const newTodo = new this.todoModel({
       ...createTodoInput,
       userId,
     });
-    return newTodo.save();
+
+    const todo = await newTodo.save();
+    return todo?.toJSON();
   }
 
-  async findAll(userId: string, paginationArgs: TodoPaginationArgs): Promise<Todo[]> {
+  async findAll(
+    userId: string,
+    paginationArgs: TodoPaginationArgs,
+  ): Promise<Todo[]> {
     const { limit = 10, offset = 0 } = paginationArgs;
-    
-    return this.todoModel
+
+    const todos = await this.todoModel
       .find({ userId })
+      .lean()
       .skip(offset)
       .limit(limit)
       .sort({ createdAt: -1 })
       .exec();
+
+    return todos.map((todo) => this.todoModel.hydrate(todo).toJSON());
   }
 
   async count(userId: string): Promise<number> {
     return this.todoModel.countDocuments({ userId }).exec();
   }
 
-  async findOne(id: string, userId: string): Promise<Todo> {
+  async findOne(id: string, userId: string): Promise<Todo | null> {
     return this.todoModel.findOne({ _id: id, userId }).exec();
   }
 
-  async update(id: string, updateTodoInput: UpdateTodoInput, userId: string): Promise<Todo> {
-    return this.todoModel
+  async update(
+    id: string,
+    updateTodoInput: UpdateTodoInput,
+    userId: string,
+  ): Promise<Todo | null> {
+    const todo = await this.todoModel
       .findOneAndUpdate(
         { _id: id, userId },
         { $set: updateTodoInput },
         { new: true },
       )
       .exec();
+    return todo ? todo?.toJSON() : null;
   }
 
   async remove(id: string, userId: string): Promise<boolean> {
