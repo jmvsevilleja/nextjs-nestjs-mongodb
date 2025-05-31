@@ -190,6 +190,7 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signOut({ token }) {
+      console.log("signOut event triggered");
       try {
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}`, {
           method: "POST",

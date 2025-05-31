@@ -11,4 +11,17 @@ declare module "next-auth" {
       image?: string | null;
     };
   }
+
+  interface User extends DefaultUser {
+    accessToken: string;
+    refreshToken: string;
+    // Add other custom properties that come from your authentication source
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken: string;
+    refreshToken: string;
+  }
 }

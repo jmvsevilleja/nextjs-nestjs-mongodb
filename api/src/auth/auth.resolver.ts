@@ -10,6 +10,7 @@ import { User } from '../users/schemas/user.schema';
 import { Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Resolver()
 export class AuthResolver {
@@ -36,5 +37,12 @@ export class AuthResolver {
   ): Promise<AuthResponse> {
     this.logger.info('Processing login request', { email: loginInput.email });
     return this.authService.login(user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Mutation(() => Boolean)
+  async logout(@CurrentUser() user: User): Promise<boolean> {
+    this.logger.info('Processing logout request', { userId: user.id });
+    return this.authService.logout(user.id);
   }
 }
