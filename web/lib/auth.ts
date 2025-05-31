@@ -51,8 +51,6 @@ export const authOptions: NextAuthOptions = {
 
           const data = await response.json();
 
-          console.log("data", data);
-
           if (data.errors) {
             throw new Error(data.errors[0].message);
           }
@@ -69,7 +67,11 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error) {
           console.error("Authorization error:", error);
-          return null;
+          throw new Error(
+            error instanceof Error
+              ? error.message
+              : "An unexpected error occurred. Please try again."
+          );
         }
       },
     }),
