@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { gql, useQuery, useMutation } from "@apollo/client";
@@ -27,6 +27,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "next-auth/react";
+import { PaginationWithLinks } from "@/components/ui/pagination-with-links";
+import { useSearchParams } from "next/navigation";
 
 interface Todo {
   id: string;
@@ -96,8 +98,11 @@ const todoFormSchema = z.object({
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const searchParams = useSearchParams();
+  const page = Number.parseInt(searchParams.get("page") || "1");
+  const pageSize = Number.parseInt(searchParams.get("pageSize") || "5");
+  // const [page, setPage] = useState(1);
+  // const pageSize = 10;
 
   const { loading, error, data, refetch } = useQuery(GET_TODOS, {
     variables: { offset: (page - 1) * pageSize, limit: pageSize },
@@ -174,17 +179,17 @@ export default function DashboardPage() {
     });
   }
 
-  function handleNextPage() {
-    if (data?.todos?.hasMore) {
-      setPage(page + 1);
-    }
-  }
+  // function handleNextPage() {
+  //   if (data?.todos?.hasMore) {
+  //     setPage(page + 1);
+  //   }
+  // }
 
-  function handlePrevPage() {
-    if (page > 1) {
-      setPage(page - 1);
-    }
-  }
+  // function handlePrevPage() {
+  //   if (page > 1) {
+  //     setPage(page - 1);
+  //   }
+  // }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -339,7 +344,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
 
-                {data?.todos?.totalCount > pageSize && (
+                {/* {data?.todos?.totalCount > pageSize && (
                   <div className="flex items-center justify-center space-x-2">
                     <Button
                       variant="outline"
@@ -362,8 +367,18 @@ export default function DashboardPage() {
                       Next
                     </Button>
                   </div>
-                )}
+                )} */}
               </>
+            )}
+            {data?.todos?.totalCount !== 0 && (
+              <PaginationWithLinks
+                totalCount={data?.todos?.totalCount || 0}
+                page={page}
+                pageSize={pageSize}
+                pageSizeSelectOptions={{
+                  pageSizeOptions: [5, 10, 25, 50, 100],
+                }}
+              />
             )}
           </div>
         </div>
