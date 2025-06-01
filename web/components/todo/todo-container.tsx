@@ -5,7 +5,9 @@ import { gql, useQuery, useMutation } from "@apollo/client";
 import { TodoForm } from "./todo-form";
 import { TodoFilters } from "./todo-filters";
 import { TodoList } from "./todo-list";
-import { Button } from "../ui/button";
+// import { Button } from "../ui/button";
+import { Paginator } from "../ui/paginator";
+import { updateUrlParams } from "@/lib/utils";
 
 const GET_TODOS = gql`
   query GetTodos(
@@ -73,9 +75,9 @@ export function TodoContainer() {
 
   const page = parseInt(searchParams.get("page") || "1");
   const search = searchParams.get("search") || "";
-  const sortOrder = searchParams.get("sort") || "desc";
+  const sortOrder = searchParams.get("sort") || "asc";
   const filterStatus = searchParams.get("status") || "all";
-  const pageSize = 5;
+  const pageSize = Number.parseInt(searchParams.get("pageSize") || "5");
 
   const { loading, error, data, refetch } = useQuery(GET_TODOS, {
     variables: {
@@ -105,18 +107,6 @@ export function TodoContainer() {
       refetch();
     },
   });
-
-  function updateUrlParams(params: { [key: string]: string }) {
-    const url = new URL(window.location.href);
-    Object.entries(params).forEach(([key, value]) => {
-      if (value) {
-        url.searchParams.set(key, value);
-      } else {
-        url.searchParams.delete(key);
-      }
-    });
-    window.history.pushState({}, "", url.pathname + url.search);
-  }
 
   function handleCreateTodo(values: { title: string; description?: string }) {
     createTodo({
@@ -157,17 +147,17 @@ export function TodoContainer() {
     });
   }
 
-  function handleNextPage() {
-    if (data?.todos?.hasMore) {
-      updateUrlParams({ page: String(page + 1) });
-    }
-  }
+  //   function handleNextPage() {
+  //     if (data?.todos?.hasMore) {
+  //       updateUrlParams({ page: String(page + 1) });
+  //     }
+  //   }
 
-  function handlePrevPage() {
-    if (page > 1) {
-      updateUrlParams({ page: String(page - 1) });
-    }
-  }
+  //   function handlePrevPage() {
+  //     if (page > 1) {
+  //       updateUrlParams({ page: String(page - 1) });
+  //     }
+  //   }
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -199,7 +189,7 @@ export function TodoContainer() {
           search={search}
         />
 
-        {data?.todos?.totalCount > pageSize && (
+        {/* {data?.todos?.totalCount > pageSize && (
           <div className="flex items-center justify-center space-x-2">
             <Button
               variant="outline"
@@ -221,6 +211,16 @@ export function TodoContainer() {
               Next
             </Button>
           </div>
+        )} */}
+        {data?.todos?.totalCount > 0 && (
+          <Paginator
+            totalCount={data?.todos?.totalCount}
+            page={page}
+            pageSize={pageSize}
+            pageSizeSelectOptions={{
+              pageSizeOptions: [5, 10, 25, 50, 100],
+            }}
+          />
         )}
       </div>
     </div>
