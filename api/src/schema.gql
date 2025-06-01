@@ -44,7 +44,7 @@ type Mutation {
 type Query {
   me: User!
   todo(id: ID!): Todo
-  todos(limit: Int = 10, offset: Int = 0): TodoConnection!
+  todos(limit: Int = 10, offset: Int = 0, search: String, sortOrder: String, status: String): TodoConnection!
   user(id: ID!): User
 }
 

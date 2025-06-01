@@ -37,11 +37,12 @@ export class TodosResolver {
   ): Promise<TodoConnection> {
     this.logger.info('Processing getTodos request', {
       user: user.email,
+      paginationArgs: paginationArgs,
     });
 
     const [todos, totalCount] = await Promise.all([
       this.todosService.findAll(user.id, paginationArgs),
-      this.todosService.count(user.id),
+      this.todosService.count(user.id, paginationArgs),
     ]);
 
     const { limit = 10, offset = 0 } = paginationArgs;

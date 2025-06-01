@@ -12,4 +12,16 @@ export class TodoPaginationArgs {
   @IsOptional()
   @Min(0)
   offset?: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  search?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  sortOrder?: 'asc' | 'desc';
+
+  @Field({ nullable: true })
+  @IsOptional()
+  status?: 'all' | 'active' | 'completed';
 }

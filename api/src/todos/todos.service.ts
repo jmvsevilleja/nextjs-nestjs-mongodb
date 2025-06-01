@@ -27,21 +27,52 @@ export class TodosService {
     userId: string,
     paginationArgs: TodoPaginationArgs,
   ): Promise<Todo[]> {
-    const { limit = 10, offset = 0 } = paginationArgs;
+    const {
+      limit = 10,
+      offset = 0,
+      search,
+      sortOrder = 'desc',
+      status,
+    } = paginationArgs;
+
+    // Build the filter query
+    const filter: any = { userId };
+
+    if (search) {
+      filter.title = { $regex: search, $options: 'i' };
+    }
+
+    if (status && status !== 'all') {
+      filter.completed = status === 'completed';
+    }
 
     const todos = await this.todoModel
-      .find({ userId })
-      .lean()
+      .find(filter)
+      .sort({ title: sortOrder === 'asc' ? 1 : -1 })
       .skip(offset)
       .limit(limit)
-      .sort({ createdAt: -1 })
       .exec();
 
     return todos.map((todo) => this.todoModel.hydrate(todo).toJSON());
   }
 
-  async count(userId: string): Promise<number> {
-    return this.todoModel.countDocuments({ userId }).exec();
+  async count(
+    userId: string,
+    paginationArgs: TodoPaginationArgs,
+  ): Promise<number> {
+    const { search, status } = paginationArgs;
+
+    const filter: any = { userId };
+
+    if (search) {
+      filter.title = { $regex: search, $options: 'i' };
+    }
+
+    if (status && status !== 'all') {
+      filter.completed = status === 'completed';
+    }
+
+    return this.todoModel.countDocuments(filter).exec();
   }
 
   async findOne(id: string, userId: string): Promise<Todo | null> {
