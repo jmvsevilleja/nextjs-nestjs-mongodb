@@ -13,7 +13,7 @@ import { setContext } from "@apollo/client/link/context";
 import { ErrorResponse, onError } from "@apollo/client/link/error";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const httpLink = createHttpLink({
   uri: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/graphql",
