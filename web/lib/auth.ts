@@ -151,14 +151,21 @@ export const authOptions: NextAuthOptions = {
               },
               body: JSON.stringify({
                 query: `
-                  mutation RefreshTokens($refreshToken: String!) {
-                    refreshTokens(refreshToken: $refreshToken) {
+                  mutation RefreshTokens($userId: String!, $refreshToken: String!) {
+                    refreshTokens(userId: $userId, refreshToken: $refreshToken) {
                       accessToken
                       refreshToken
+                      user {
+                        id
+                        name
+                        email
+                        profilePicture
+                      }
                     }
                   }
                 `,
                 variables: {
+                  userId: token.id,
                   refreshToken: token.refreshToken,
                 },
               }),

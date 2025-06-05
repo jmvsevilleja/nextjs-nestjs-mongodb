@@ -45,4 +45,16 @@ export class AuthResolver {
     this.logger.info('Processing logout request', { userId: user.id });
     return this.authService.logout(user.id);
   }
+
+  @Mutation(() => AuthResponse)
+  async refreshTokens(
+    @Args('userId') userId: string,
+    @Args('refreshToken') refreshToken: string,
+  ): Promise<AuthResponse> {
+    this.logger.info('Processing refreshTokens request', {
+      userId: userId,
+      refreshToken: refreshToken,
+    });
+    return this.authService.refreshTokens(userId, refreshToken);
+  }
 }
