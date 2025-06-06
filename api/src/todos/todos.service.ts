@@ -76,7 +76,8 @@ export class TodosService {
   }
 
   async findOne(id: string, userId: string): Promise<Todo | null> {
-    return this.todoModel.findOne({ _id: id, userId }).exec();
+    const todo = await this.todoModel.findOne({ _id: id, userId }).exec();
+    return todo ? todo?.toJSON() : null;
   }
 
   async update(
