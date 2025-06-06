@@ -4,10 +4,16 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserInput } from './dto/create-user.input';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async create(createUserInput: CreateUserInput): Promise<User> {
     const { password, ...rest } = createUserInput;
@@ -71,7 +77,21 @@ export class UsersService {
     const user = await this.userModel.findById(userId);
     if (!user || !user.refreshToken) return false;
 
-    return bcrypt.compare(refreshToken, user.refreshToken);
+    const secret = this.configService.get<string>('JWT_REFRESH_SECRET');
+    if (!secret) {
+      throw new Error('JWT secret key is missing');
+    }
+
+    // Verify the token
+    try {
+      this.jwtService.verify(refreshToken, { secret }); // throws if expired or invalid
+      // Token is valid and matches
+    } catch (err) {
+      this.removeRefreshToken(userId);
+      throw err;
+    }
+
+    return await bcrypt.compare(refreshToken, user.refreshToken); // optional, if hashed
   }
 
   async removeRefreshToken(userId: string): Promise<void> {

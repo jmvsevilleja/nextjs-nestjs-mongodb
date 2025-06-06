@@ -41,8 +41,6 @@ export function ApolloProvider({ children }: { children: React.ReactNode }) {
     ({
       graphQLErrors,
       networkError,
-      operation,
-      forward,
     }: ErrorResponse): Observable<FetchResult> | void => {
       if (graphQLErrors) {
         for (const err of graphQLErrors) {
@@ -53,18 +51,16 @@ export function ApolloProvider({ children }: { children: React.ReactNode }) {
             // Return a new observable that retries the failed request
             return new Observable((observer) => {
               update() // This triggers the refresh token flow in NextAuth
-                .then(() => {
-                  const subscriber = forward(operation).subscribe({
-                    next: observer.next.bind(observer),
-                    error: observer.error.bind(observer),
-                    complete: observer.complete.bind(observer),
-                  });
-                  return () => subscriber.unsubscribe();
+                .then((updatedSession) => {
+                  if (!updatedSession) {
+                    router.push("/auth/signin");
+                    observer.complete();
+                  }
                 })
                 .catch(() => {
                   // If refresh fails, redirect to login
                   router.push("/auth/signin");
-                  observer.complete(); // Complete the observable if refresh fails
+                  observer.complete();
                 })
                 .finally(() => {
                   setIsRefreshing(false);
