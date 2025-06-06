@@ -175,9 +175,11 @@ export const authOptions: NextAuthOptions = {
             if (!data.errors) {
               token.accessToken = data.data.refreshTokens.accessToken;
               token.refreshToken = data.data.refreshTokens.refreshToken;
+            } else {
+              throw new Error(data.errors[0].message);
             }
           } catch (error) {
-            console.error("Token refresh error:", error);
+            throw error;
           }
         }
       }
