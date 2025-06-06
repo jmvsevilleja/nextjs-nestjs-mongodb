@@ -65,7 +65,7 @@ function CardContent({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div data-slot="card-content" className={cn("p-6 pt-0", className)} {...props} />
+    <div data-slot="card-content\" className={cn("p-6 pt-0", className)} {...props} />
   )
 }
 
