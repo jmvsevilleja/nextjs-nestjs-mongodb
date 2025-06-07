@@ -24,14 +24,14 @@ export class PaymentPackage {
 @ObjectType()
 export class PaymentIntent {
   @Field()
-  clientSecret: string;
-
-  @Field()
   transactionId: string;
 
   @Field({ nullable: true })
   paypalOrderId?: string;
 
   @Field({ nullable: true })
-  paymongoCheckoutUrl?: string;
+  gcashPaymentId?: string;
+
+  @Field({ nullable: true })
+  qrCode?: string;
 }

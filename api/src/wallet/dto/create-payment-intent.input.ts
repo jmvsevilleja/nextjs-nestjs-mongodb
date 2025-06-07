@@ -1,5 +1,5 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
-import { IsEnum, IsNotEmpty, IsOptional, IsPositive, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsPositive, Min, IsString } from 'class-validator';
 import { PaymentProvider } from '../schemas/transaction.schema';
 
 @InputType()
@@ -17,4 +17,9 @@ export class CreatePaymentIntentInput {
   @IsPositive()
   @Min(1)
   multiplier?: number;
+
+  @Field()
+  @IsNotEmpty()
+  @IsString()
+  transactionId: string; // User-provided transaction ID
 }

@@ -6,7 +6,6 @@ import { gql } from "@apollo/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CheckCircle, XCircle, Clock, User, CreditCard, DollarSign } from "lucide-react";
 import { format } from "date-fns";
@@ -30,6 +29,7 @@ const GET_ADMIN_TRANSACTIONS = gql`
         processedAt
         userName
         userEmail
+        transactionId
         createdAt
       }
       totalCount
@@ -59,6 +59,7 @@ interface AdminTransaction {
   processedAt?: string;
   userName: string;
   userEmail: string;
+  transactionId?: string;
   createdAt: string;
 }
 
@@ -130,12 +131,10 @@ export function TransactionManagement() {
 
   const getProviderIcon = (provider?: string) => {
     switch (provider) {
-      case "STRIPE":
-        return <CreditCard className="h-4 w-4" />;
       case "PAYPAL":
-        return <DollarSign className="h-4 w-4" />;
-      case "PAYMONGO":
-        return <CreditCard className="h-4 w-4" />;
+        return <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="PayPal" className="h-4" />;
+      case "GCASH":
+        return <img src="https://logos-world.net/wp-content/uploads/2022/03/GCash-Logo.png" alt="GCash" className="h-4" />;
       default:
         return <CreditCard className="h-4 w-4" />;
     }
@@ -216,6 +215,14 @@ export function TransactionManagement() {
                         <p className="text-sm text-muted-foreground">
                           {transaction.description}
                         </p>
+
+                        {transaction.transactionId && (
+                          <div className="bg-muted p-3 rounded-md">
+                            <p className="text-sm">
+                              <strong>User Transaction ID:</strong> {transaction.transactionId}
+                            </p>
+                          </div>
+                        )}
 
                         <div className="flex items-center gap-4 text-sm">
                           <span>

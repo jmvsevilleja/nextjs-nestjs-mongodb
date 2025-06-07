@@ -17,9 +17,8 @@ export enum TransactionStatus {
 }
 
 export enum PaymentProvider {
-  STRIPE = 'STRIPE',
   PAYPAL = 'PAYPAL',
-  PAYMONGO = 'PAYMONGO',
+  GCASH = 'GCASH',
 }
 
 @Schema({
@@ -59,7 +58,7 @@ export class Transaction {
   paymentProvider?: PaymentProvider;
 
   @Prop()
-  paymentIntentId?: string; // External payment ID
+  transactionId?: string; // User-provided transaction ID
 
   @Prop()
   packageType?: string; // '5', '10', '15'

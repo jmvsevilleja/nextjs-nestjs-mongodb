@@ -40,7 +40,7 @@ export class Transaction {
   paymentProvider?: PaymentProvider;
 
   @Field({ nullable: true })
-  paymentIntentId?: string;
+  transactionId?: string;
 
   @Field({ nullable: true })
   packageType?: string;

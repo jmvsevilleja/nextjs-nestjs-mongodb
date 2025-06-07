@@ -25,9 +25,9 @@ import { PaymentService } from './payment.service';
 @Injectable()
 export class WalletService {
   private readonly packages = {
-    '5': { price: 5, credits: 200 },
-    '10': { price: 10, credits: 500 },
-    '15': { price: 15, credits: 800 },
+    '5': { price: 5, credits: 300 },
+    '10': { price: 10, credits: 600 },
+    '15': { price: 15, credits: 900 },
   };
 
   constructor(
@@ -69,7 +69,7 @@ export class WalletService {
   }
 
   async createPaymentIntent(userId: string, input: CreatePaymentIntentInput) {
-    const { packageType, paymentProvider, multiplier = 1 } = input;
+    const { packageType, paymentProvider, multiplier = 1, transactionId } = input;
 
     if (!this.packages[packageType]) {
       throw new BadRequestException('Invalid package type');
@@ -80,6 +80,16 @@ export class WalletService {
       throw new BadRequestException(
         'Multiple orders only allowed for $15 package',
       );
+    }
+
+    // Check if transaction ID already exists
+    const existingTransaction = await this.transactionModel.findOne({
+      transactionId,
+      userId,
+    }).exec();
+
+    if (existingTransaction) {
+      throw new BadRequestException('Transaction ID already exists');
     }
 
     const wallet = await this.getOrCreateWallet(userId);
@@ -96,9 +106,10 @@ export class WalletService {
       credits: totalCredits,
       status: TransactionStatus.PENDING,
       paymentProvider,
+      transactionId,
       packageType,
       multiplier,
-      description: `Purchase ${multiplier}x $${packageType} package${multiplier > 1 ? 's' : ''}`,
+      description: `Purchase ${multiplier}x $${packageType} package${multiplier > 1 ? 's' : ''} - Transaction ID: ${transactionId}`,
     });
 
     await transaction.save();
@@ -106,41 +117,29 @@ export class WalletService {
     // Create payment intent based on provider
     let paymentIntent;
     switch (paymentProvider) {
-      case PaymentProvider.STRIPE:
-        paymentIntent = await this.paymentService.createStripePaymentIntent(
-          totalAmount,
-          transaction.id,
-        );
-        break;
       case PaymentProvider.PAYPAL:
         paymentIntent = await this.paymentService.createPayPalOrder(
           totalAmount,
           transaction.id,
+          transactionId,
         );
         break;
-      case PaymentProvider.PAYMONGO:
-        paymentIntent = await this.paymentService.createPayMongoCheckout(
+      case PaymentProvider.GCASH:
+        paymentIntent = await this.paymentService.createGCashPayment(
           totalAmount,
           transaction.id,
+          transactionId,
         );
         break;
       default:
         throw new BadRequestException('Unsupported payment provider');
     }
 
-    // Update transaction with payment intent ID
-    await this.transactionModel.findByIdAndUpdate(transaction.id, {
-      paymentIntentId:
-        paymentIntent.paymentIntentId ||
-        paymentIntent.paypalOrderId ||
-        paymentIntent.paymongoCheckoutId,
-    });
-
     return {
-      clientSecret: paymentIntent.clientSecret,
       transactionId: transaction.id,
       paypalOrderId: paymentIntent.paypalOrderId,
-      paymongoCheckoutUrl: paymentIntent.paymongoCheckoutUrl,
+      gcashPaymentId: paymentIntent.gcashPaymentId,
+      qrCode: paymentIntent.qrCode,
     };
   }
 
@@ -160,28 +159,22 @@ export class WalletService {
     // Verify payment based on provider
     let isPaymentSuccessful = false;
     switch (transaction.paymentProvider) {
-      case PaymentProvider.STRIPE:
-        if (input.paymentIntentId)
-          isPaymentSuccessful = await this.paymentService.verifyStripePayment(
-            input.paymentIntentId,
-          );
-        break;
       case PaymentProvider.PAYPAL:
-        if (input.paypalOrderId)
-          isPaymentSuccessful = await this.paymentService.verifyPayPalPayment(
-            input.paypalOrderId,
-          );
+        isPaymentSuccessful = await this.paymentService.verifyPayPalPayment(
+          `paypal_order_${transaction.id}`,
+          transaction.transactionId,
+        );
         break;
-      case PaymentProvider.PAYMONGO:
-        if (input.paymongoPaymentId)
-          isPaymentSuccessful = await this.paymentService.verifyPayMongoPayment(
-            input.paymongoPaymentId,
-          );
+      case PaymentProvider.GCASH:
+        isPaymentSuccessful = await this.paymentService.verifyGCashPayment(
+          `gcash_payment_${transaction.id}`,
+          transaction.transactionId,
+        );
         break;
     }
 
     if (isPaymentSuccessful) {
-      // Mark transaction as pending admin approval instead of auto-completing
+      // Mark transaction as pending admin approval
       await this.transactionModel.findByIdAndUpdate(transaction.id, {
         status: TransactionStatus.PENDING, // Keep as pending for admin approval
       });

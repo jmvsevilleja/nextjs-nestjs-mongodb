@@ -1,20 +1,11 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PaymentService {
   constructor(private configService: ConfigService) {}
 
-  async createStripePaymentIntent(amount: number, transactionId: string) {
-    // This is a mock implementation
-    // In production, you would use the actual Stripe SDK
-    return {
-      clientSecret: `pi_mock_${transactionId}_secret`,
-      paymentIntentId: `pi_mock_${transactionId}`,
-    };
-  }
-
-  async createPayPalOrder(amount: number, transactionId: string) {
+  async createPayPalOrder(amount: number, transactionId: string, userTransactionId: string) {
     // This is a mock implementation
     // In production, you would use the actual PayPal SDK
     return {
@@ -23,31 +14,25 @@ export class PaymentService {
     };
   }
 
-  async createPayMongoCheckout(amount: number, transactionId: string) {
+  async createGCashPayment(amount: number, transactionId: string, userTransactionId: string) {
     // This is a mock implementation
-    // In production, you would use the actual PayMongo API
+    // In production, you would use the actual GCash API
     return {
-      paymongoCheckoutId: `paymongo_checkout_${transactionId}`,
-      paymongoCheckoutUrl: `https://checkout.paymongo.com/mock/${transactionId}`,
+      gcashPaymentId: `gcash_payment_${transactionId}`,
+      qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=gcash://pay?amount=${amount}&ref=${userTransactionId}`,
       clientSecret: null,
     };
   }
 
-  async verifyStripePayment(paymentIntentId: string): Promise<boolean> {
-    // Mock verification - always returns true for demo
-    // In production, verify with Stripe API
-    return true;
-  }
-
-  async verifyPayPalPayment(orderId: string): Promise<boolean> {
+  async verifyPayPalPayment(paypalOrderId: string, userTransactionId: string): Promise<boolean> {
     // Mock verification - always returns true for demo
     // In production, verify with PayPal API
     return true;
   }
 
-  async verifyPayMongoPayment(paymentId: string): Promise<boolean> {
+  async verifyGCashPayment(gcashPaymentId: string, userTransactionId: string): Promise<boolean> {
     // Mock verification - always returns true for demo
-    // In production, verify with PayMongo API
+    // In production, verify with GCash API
     return true;
   }
 }
