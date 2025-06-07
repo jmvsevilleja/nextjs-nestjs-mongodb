@@ -3,6 +3,11 @@ import { HydratedDocument } from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
 
+export enum UserRole {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
+
 @Schema({
   timestamps: true,
   toJSON: {
@@ -38,6 +43,9 @@ export class User {
 
   @Prop()
   refreshToken?: string;
+
+  @Prop({ type: String, enum: UserRole, default: UserRole.USER })
+  role: UserRole;
 
   @Prop({ type: Date, default: Date.now })
   createdAt: Date;

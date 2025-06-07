@@ -3,8 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { Transaction, TransactionDocument, TransactionType, TransactionStatus, PaymentProvider } from './schemas/transaction.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
 import { CreatePaymentIntentInput } from './dto/create-payment-intent.input';
 import { ConfirmPaymentInput } from './dto/confirm-payment.input';
+import { ProcessTransactionInput, TransactionAction } from './dto/process-transaction.input';
 import { PaymentService } from './payment.service';
 
 @Injectable()
@@ -18,6 +20,7 @@ export class WalletService {
   constructor(
     @InjectModel(Wallet.name) private walletModel: Model<WalletDocument>,
     @InjectModel(Transaction.name) private transactionModel: Model<TransactionDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private paymentService: PaymentService,
   ) {}
 
@@ -154,14 +157,9 @@ export class WalletService {
     }
 
     if (isPaymentSuccessful) {
-      // Update transaction status
+      // Mark transaction as pending admin approval instead of auto-completing
       await this.transactionModel.findByIdAndUpdate(transaction.id, {
-        status: TransactionStatus.COMPLETED,
-      });
-
-      // Add credits to wallet
-      await this.walletModel.findByIdAndUpdate(transaction.walletId, {
-        $inc: { credits: transaction.credits },
+        status: TransactionStatus.PENDING, // Keep as pending for admin approval
       });
 
       return true;
@@ -218,5 +216,132 @@ export class WalletService {
     });
 
     return transaction.toJSON();
+  }
+
+  // Admin methods
+  async getAdminTransactions(limit = 20, offset = 0, status?: string) {
+    const filter: any = { type: TransactionType.DEPOSIT };
+    
+    if (status && status !== 'ALL') {
+      filter.status = status;
+    }
+
+    const transactions = await this.transactionModel
+      .find(filter)
+      .populate('userId', 'name email')
+      .populate('processedBy', 'name email')
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .exec();
+
+    const totalCount = await this.transactionModel.countDocuments(filter);
+
+    const adminTransactions = transactions.map(transaction => {
+      const user = transaction.userId as any;
+      const processedBy = transaction.processedBy as any;
+      
+      return {
+        ...transaction.toJSON(),
+        userName: user?.name || 'Unknown',
+        userEmail: user?.email || 'Unknown',
+        processedBy: processedBy?.name || null,
+      };
+    });
+
+    return {
+      transactions: adminTransactions,
+      totalCount,
+      hasMore: offset + transactions.length < totalCount,
+    };
+  }
+
+  async getTransactionStats() {
+    const [
+      totalTransactions,
+      pendingTransactions,
+      completedTransactions,
+      rejectedTransactions,
+      revenueStats,
+    ] = await Promise.all([
+      this.transactionModel.countDocuments({ type: TransactionType.DEPOSIT }),
+      this.transactionModel.countDocuments({ 
+        type: TransactionType.DEPOSIT, 
+        status: TransactionStatus.PENDING 
+      }),
+      this.transactionModel.countDocuments({ 
+        type: TransactionType.DEPOSIT, 
+        status: TransactionStatus.COMPLETED 
+      }),
+      this.transactionModel.countDocuments({ 
+        type: TransactionType.DEPOSIT, 
+        status: TransactionStatus.REJECTED 
+      }),
+      this.transactionModel.aggregate([
+        { $match: { type: TransactionType.DEPOSIT } },
+        {
+          $group: {
+            _id: '$status',
+            totalAmount: { $sum: '$amount' },
+          },
+        },
+      ]),
+    ]);
+
+    const totalRevenue = revenueStats
+      .filter(stat => stat._id === TransactionStatus.COMPLETED)
+      .reduce((sum, stat) => sum + stat.totalAmount, 0);
+
+    const pendingRevenue = revenueStats
+      .filter(stat => stat._id === TransactionStatus.PENDING)
+      .reduce((sum, stat) => sum + stat.totalAmount, 0);
+
+    return {
+      totalTransactions,
+      pendingTransactions,
+      completedTransactions,
+      rejectedTransactions,
+      totalRevenue,
+      pendingRevenue,
+    };
+  }
+
+  async processTransaction(input: ProcessTransactionInput, adminId: string) {
+    const { transactionId, action, adminNote } = input;
+
+    const transaction = await this.transactionModel.findOne({
+      _id: transactionId,
+      status: TransactionStatus.PENDING,
+      type: TransactionType.DEPOSIT,
+    }).exec();
+
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found or already processed');
+    }
+
+    if (action === TransactionAction.APPROVE) {
+      // Update transaction status
+      await this.transactionModel.findByIdAndUpdate(transactionId, {
+        status: TransactionStatus.COMPLETED,
+        adminNote,
+        processedBy: adminId,
+        processedAt: new Date(),
+      });
+
+      // Add credits to wallet
+      await this.walletModel.findByIdAndUpdate(transaction.walletId, {
+        $inc: { credits: transaction.credits },
+      });
+    } else if (action === TransactionAction.REJECT) {
+      // Update transaction status
+      await this.transactionModel.findByIdAndUpdate(transactionId, {
+        status: TransactionStatus.REJECTED,
+        adminNote,
+        processedBy: adminId,
+        processedAt: new Date(),
+      });
+    }
+
+    return true;
   }
 }

@@ -4,9 +4,12 @@ import { WalletService } from './wallet.service';
 import { Wallet } from './models/wallet.model';
 import { Transaction } from './models/transaction.model';
 import { PaymentPackage, PaymentIntent } from './models/payment-package.model';
+import { AdminTransaction, AdminTransactionConnection, TransactionStats } from './models/admin-transaction.model';
 import { CreatePaymentIntentInput } from './dto/create-payment-intent.input';
 import { ConfirmPaymentInput } from './dto/confirm-payment.input';
+import { ProcessTransactionInput } from './dto/process-transaction.input';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
@@ -69,5 +72,38 @@ export class WalletResolver {
     });
     const result = await this.walletService.getTransactionHistory(user.id, limit, offset);
     return result.transactions;
+  }
+
+  // Admin-only endpoints
+  @UseGuards(AdminGuard)
+  @Query(() => AdminTransactionConnection)
+  async adminTransactions(
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 20 }) limit: number,
+    @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 }) offset: number,
+    @Args('status', { nullable: true }) status?: string,
+  ): Promise<AdminTransactionConnection> {
+    this.logger.info('Processing adminTransactions request', { limit, offset, status });
+    return this.walletService.getAdminTransactions(limit, offset, status);
+  }
+
+  @UseGuards(AdminGuard)
+  @Query(() => TransactionStats)
+  async transactionStats(): Promise<TransactionStats> {
+    this.logger.info('Processing transactionStats request');
+    return this.walletService.getTransactionStats();
+  }
+
+  @UseGuards(AdminGuard)
+  @Mutation(() => Boolean)
+  async processTransaction(
+    @Args('input') input: ProcessTransactionInput,
+    @CurrentUser() admin: any,
+  ): Promise<boolean> {
+    this.logger.info('Processing processTransaction request', {
+      adminId: admin.id,
+      transactionId: input.transactionId,
+      action: input.action,
+    });
+    return this.walletService.processTransaction(input, admin.id);
   }
 }

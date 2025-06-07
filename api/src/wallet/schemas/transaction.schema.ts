@@ -13,6 +13,7 @@ export enum TransactionStatus {
   COMPLETED = 'COMPLETED',
   FAILED = 'FAILED',
   CANCELLED = 'CANCELLED',
+  REJECTED = 'REJECTED',
 }
 
 export enum PaymentProvider {
@@ -68,6 +69,15 @@ export class Transaction {
 
   @Prop()
   description?: string;
+
+  @Prop()
+  adminNote?: string; // Admin notes for processing
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  processedBy?: string; // Admin who processed the transaction
+
+  @Prop()
+  processedAt?: Date; // When the transaction was processed
 
   @Prop()
   createdAt: Date;
