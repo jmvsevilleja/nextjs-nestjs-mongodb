@@ -8,6 +8,7 @@ import { AuthResolver } from './auth.resolver';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { AdminGuard } from './guards/admin.guard';
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { GoogleStrategy } from './strategies/google.strategy';
     LocalStrategy,
     JwtStrategy,
     GoogleStrategy,
+    AdminGuard,
   ],
-  exports: [AuthService],
+  exports: [AuthService, AdminGuard],
 })
 export class AuthModule {}

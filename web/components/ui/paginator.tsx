@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+// import { useRouter, usePathname } from "next/navigation";
 
 import { cn, updateUrlParams } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -33,8 +33,8 @@ export function Paginator({
   className,
   ...props
 }: PaginatorProps) {
-  const router = useRouter();
-  const pathname = usePathname();
+  // const router = useRouter();
+  // const pathname = usePathname();
   const pageCount = Math.ceil(totalCount / pageSize);
   const siblingCount = 1;
 

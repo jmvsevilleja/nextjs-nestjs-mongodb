@@ -37,6 +37,7 @@ type Mutation {
   deleteTodo(id: ID!): Boolean!
   login(input: LoginInput!): AuthResponse!
   logout: Boolean!
+  refreshTokens(refreshToken: String!, userId: String!): AuthResponse!
   signup(input: CreateUserInput!): AuthResponse!
   updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
 }

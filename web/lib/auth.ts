@@ -151,14 +151,21 @@ export const authOptions: NextAuthOptions = {
               },
               body: JSON.stringify({
                 query: `
-                  mutation RefreshTokens($refreshToken: String!) {
-                    refreshTokens(refreshToken: $refreshToken) {
+                  mutation RefreshTokens($userId: String!, $refreshToken: String!) {
+                    refreshTokens(userId: $userId, refreshToken: $refreshToken) {
                       accessToken
                       refreshToken
+                      user {
+                        id
+                        name
+                        email
+                        profilePicture
+                      }
                     }
                   }
                 `,
                 variables: {
+                  userId: token.id,
                   refreshToken: token.refreshToken,
                 },
               }),
@@ -168,9 +175,11 @@ export const authOptions: NextAuthOptions = {
             if (!data.errors) {
               token.accessToken = data.data.refreshTokens.accessToken;
               token.refreshToken = data.data.refreshTokens.refreshToken;
+            } else {
+              throw new Error(data.errors[0].message);
             }
           } catch (error) {
-            console.error("Token refresh error:", error);
+            throw error;
           }
         }
       }
