@@ -25,9 +25,9 @@ import { PaymentService } from './payment.service';
 @Injectable()
 export class WalletService {
   private readonly packages = {
-    '5': { price: 5, credits: 300 },
-    '10': { price: 10, credits: 600 },
-    '15': { price: 15, credits: 900 },
+    '5': { price: 5, credits: 200 },
+    '10': { price: 10, credits: 500 },
+    '15': { price: 15, credits: 800 },
   };
 
   constructor(
