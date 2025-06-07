@@ -2,10 +2,51 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AdminTransaction {
+  adminNote: String
+  amount: Float!
+  createdAt: DateTime!
+  credits: Int!
+  description: String
+  id: ID!
+  multiplier: Int!
+  packageType: String
+  paymentIntentId: String
+  paymentProvider: PaymentProvider
+  processedAt: DateTime
+  processedBy: String
+  status: TransactionStatus!
+  type: TransactionType!
+  updatedAt: DateTime!
+  userEmail: String!
+  userId: String!
+  userName: String!
+  walletId: String!
+}
+
+type AdminTransactionConnection {
+  hasMore: Boolean!
+  totalCount: Int!
+  transactions: [AdminTransaction!]!
+}
+
 type AuthResponse {
   accessToken: String!
   refreshToken: String!
   user: User!
+}
+
+input ConfirmPaymentInput {
+  paymentIntentId: String
+  paymongoPaymentId: String
+  paypalOrderId: String
+  transactionId: String!
+}
+
+input CreatePaymentIntentInput {
+  multiplier: Int = 1
+  packageType: String!
+  paymentProvider: PaymentProvider!
 }
 
 input CreateTodoInput {
@@ -33,19 +74,55 @@ input LoginInput {
 }
 
 type Mutation {
+  confirmPayment(input: ConfirmPaymentInput!): Boolean!
+  createPaymentIntent(input: CreatePaymentIntentInput!): PaymentIntent!
   createTodo(input: CreateTodoInput!): Todo!
   deleteTodo(id: ID!): Boolean!
   login(input: LoginInput!): AuthResponse!
   logout: Boolean!
+  processTransaction(input: ProcessTransactionInput!): Boolean!
   refreshTokens(refreshToken: String!, userId: String!): AuthResponse!
   signup(input: CreateUserInput!): AuthResponse!
   updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
 }
 
+type PaymentIntent {
+  clientSecret: String!
+  paymongoCheckoutUrl: String
+  paypalOrderId: String
+  transactionId: String!
+}
+
+type PaymentPackage {
+  allowMultiple: Boolean!
+  credits: Int!
+  description: String!
+  id: String!
+  name: String!
+  price: Float!
+}
+
+enum PaymentProvider {
+  PAYMONGO
+  PAYPAL
+  STRIPE
+}
+
+input ProcessTransactionInput {
+  action: TransactionAction!
+  adminNote: String
+  transactionId: String!
+}
+
 type Query {
+  adminTransactions(limit: Int = 20, offset: Int = 0, status: String): AdminTransactionConnection!
   me: User!
+  myWallet: Wallet!
+  paymentPackages: [PaymentPackage!]!
   todo(id: ID!): Todo
   todos(limit: Int = 10, offset: Int = 0, search: String, sortOrder: String, status: String): TodoConnection!
+  transactionHistory(limit: Int = 10, offset: Int = 0): [Transaction!]!
+  transactionStats: TransactionStats!
   user(id: ID!): User
 }
 
@@ -65,6 +142,50 @@ type TodoConnection {
   totalCount: Int!
 }
 
+type Transaction {
+  amount: Float!
+  createdAt: DateTime!
+  credits: Int!
+  description: String
+  id: ID!
+  multiplier: Int!
+  packageType: String
+  paymentIntentId: String
+  paymentProvider: PaymentProvider
+  status: TransactionStatus!
+  type: TransactionType!
+  updatedAt: DateTime!
+  userId: String!
+  walletId: String!
+}
+
+enum TransactionAction {
+  APPROVE
+  REJECT
+}
+
+type TransactionStats {
+  completedTransactions: Int!
+  pendingRevenue: Float!
+  pendingTransactions: Int!
+  rejectedTransactions: Int!
+  totalRevenue: Float!
+  totalTransactions: Int!
+}
+
+enum TransactionStatus {
+  CANCELLED
+  COMPLETED
+  FAILED
+  PENDING
+  REJECTED
+}
+
+enum TransactionType {
+  DEBIT
+  DEPOSIT
+}
+
 input UpdateTodoInput {
   completed: Boolean
   description: String
@@ -77,5 +198,19 @@ type User {
   id: ID!
   name: String!
   profilePicture: String
+  role: UserRole!
   updatedAt: DateTime!
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+type Wallet {
+  createdAt: DateTime!
+  credits: Int!
+  id: ID!
+  updatedAt: DateTime!
+  userId: String!
 }

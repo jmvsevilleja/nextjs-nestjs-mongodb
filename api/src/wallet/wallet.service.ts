@@ -1,12 +1,25 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Wallet, WalletDocument } from './schemas/wallet.schema';
-import { Transaction, TransactionDocument, TransactionType, TransactionStatus, PaymentProvider } from './schemas/transaction.schema';
+import {
+  Transaction,
+  TransactionDocument,
+  TransactionType,
+  TransactionStatus,
+  PaymentProvider,
+} from './schemas/transaction.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { CreatePaymentIntentInput } from './dto/create-payment-intent.input';
 import { ConfirmPaymentInput } from './dto/confirm-payment.input';
-import { ProcessTransactionInput, TransactionAction } from './dto/process-transaction.input';
+import {
+  ProcessTransactionInput,
+  TransactionAction,
+} from './dto/process-transaction.input';
 import { PaymentService } from './payment.service';
 
 @Injectable()
@@ -19,14 +32,15 @@ export class WalletService {
 
   constructor(
     @InjectModel(Wallet.name) private walletModel: Model<WalletDocument>,
-    @InjectModel(Transaction.name) private transactionModel: Model<TransactionDocument>,
+    @InjectModel(Transaction.name)
+    private transactionModel: Model<TransactionDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private paymentService: PaymentService,
   ) {}
 
   async getOrCreateWallet(userId: string): Promise<Wallet> {
     let wallet = await this.walletModel.findOne({ userId }).exec();
-    
+
     if (!wallet) {
       wallet = new this.walletModel({ userId, credits: 0 });
       await wallet.save();
@@ -63,7 +77,9 @@ export class WalletService {
 
     // Only allow multiplier for $15 package
     if (packageType !== '15' && multiplier > 1) {
-      throw new BadRequestException('Multiple orders only allowed for $15 package');
+      throw new BadRequestException(
+        'Multiple orders only allowed for $15 package',
+      );
     }
 
     const wallet = await this.getOrCreateWallet(userId);
@@ -93,19 +109,19 @@ export class WalletService {
       case PaymentProvider.STRIPE:
         paymentIntent = await this.paymentService.createStripePaymentIntent(
           totalAmount,
-          transaction.id
+          transaction.id,
         );
         break;
       case PaymentProvider.PAYPAL:
         paymentIntent = await this.paymentService.createPayPalOrder(
           totalAmount,
-          transaction.id
+          transaction.id,
         );
         break;
       case PaymentProvider.PAYMONGO:
         paymentIntent = await this.paymentService.createPayMongoCheckout(
           totalAmount,
-          transaction.id
+          transaction.id,
         );
         break;
       default:
@@ -114,7 +130,10 @@ export class WalletService {
 
     // Update transaction with payment intent ID
     await this.transactionModel.findByIdAndUpdate(transaction.id, {
-      paymentIntentId: paymentIntent.paymentIntentId || paymentIntent.paypalOrderId || paymentIntent.paymongoCheckoutId,
+      paymentIntentId:
+        paymentIntent.paymentIntentId ||
+        paymentIntent.paypalOrderId ||
+        paymentIntent.paymongoCheckoutId,
     });
 
     return {
@@ -126,11 +145,13 @@ export class WalletService {
   }
 
   async confirmPayment(userId: string, input: ConfirmPaymentInput) {
-    const transaction = await this.transactionModel.findOne({
-      _id: input.transactionId,
-      userId,
-      status: TransactionStatus.PENDING,
-    }).exec();
+    const transaction = await this.transactionModel
+      .findOne({
+        _id: input.transactionId,
+        userId,
+        status: TransactionStatus.PENDING,
+      })
+      .exec();
 
     if (!transaction) {
       throw new NotFoundException('Transaction not found or already processed');
@@ -140,19 +161,22 @@ export class WalletService {
     let isPaymentSuccessful = false;
     switch (transaction.paymentProvider) {
       case PaymentProvider.STRIPE:
-        isPaymentSuccessful = await this.paymentService.verifyStripePayment(
-          input.paymentIntentId
-        );
+        if (input.paymentIntentId)
+          isPaymentSuccessful = await this.paymentService.verifyStripePayment(
+            input.paymentIntentId,
+          );
         break;
       case PaymentProvider.PAYPAL:
-        isPaymentSuccessful = await this.paymentService.verifyPayPalPayment(
-          input.paypalOrderId
-        );
+        if (input.paypalOrderId)
+          isPaymentSuccessful = await this.paymentService.verifyPayPalPayment(
+            input.paypalOrderId,
+          );
         break;
       case PaymentProvider.PAYMONGO:
-        isPaymentSuccessful = await this.paymentService.verifyPayMongoPayment(
-          input.paymongoPaymentId
-        );
+        if (input.paymongoPaymentId)
+          isPaymentSuccessful = await this.paymentService.verifyPayMongoPayment(
+            input.paymongoPaymentId,
+          );
         break;
     }
 
@@ -184,7 +208,7 @@ export class WalletService {
     const totalCount = await this.transactionModel.countDocuments({ userId });
 
     return {
-      transactions: transactions.map(t => t.toJSON()),
+      transactions: transactions.map((t) => t.toJSON()),
       totalCount,
       hasMore: offset + transactions.length < totalCount,
     };
@@ -192,7 +216,7 @@ export class WalletService {
 
   async deductCredits(userId: string, credits: number, description: string) {
     const wallet = await this.getWalletByUserId(userId);
-    
+
     if (wallet.credits < credits) {
       throw new BadRequestException('Insufficient credits');
     }
@@ -221,7 +245,7 @@ export class WalletService {
   // Admin methods
   async getAdminTransactions(limit = 20, offset = 0, status?: string) {
     const filter: any = { type: TransactionType.DEPOSIT };
-    
+
     if (status && status !== 'ALL') {
       filter.status = status;
     }
@@ -237,10 +261,10 @@ export class WalletService {
 
     const totalCount = await this.transactionModel.countDocuments(filter);
 
-    const adminTransactions = transactions.map(transaction => {
+    const adminTransactions = transactions.map((transaction) => {
       const user = transaction.userId as any;
       const processedBy = transaction.processedBy as any;
-      
+
       return {
         ...transaction.toJSON(),
         userName: user?.name || 'Unknown',
@@ -265,17 +289,17 @@ export class WalletService {
       revenueStats,
     ] = await Promise.all([
       this.transactionModel.countDocuments({ type: TransactionType.DEPOSIT }),
-      this.transactionModel.countDocuments({ 
-        type: TransactionType.DEPOSIT, 
-        status: TransactionStatus.PENDING 
+      this.transactionModel.countDocuments({
+        type: TransactionType.DEPOSIT,
+        status: TransactionStatus.PENDING,
       }),
-      this.transactionModel.countDocuments({ 
-        type: TransactionType.DEPOSIT, 
-        status: TransactionStatus.COMPLETED 
+      this.transactionModel.countDocuments({
+        type: TransactionType.DEPOSIT,
+        status: TransactionStatus.COMPLETED,
       }),
-      this.transactionModel.countDocuments({ 
-        type: TransactionType.DEPOSIT, 
-        status: TransactionStatus.REJECTED 
+      this.transactionModel.countDocuments({
+        type: TransactionType.DEPOSIT,
+        status: TransactionStatus.REJECTED,
       }),
       this.transactionModel.aggregate([
         { $match: { type: TransactionType.DEPOSIT } },
@@ -289,11 +313,11 @@ export class WalletService {
     ]);
 
     const totalRevenue = revenueStats
-      .filter(stat => stat._id === TransactionStatus.COMPLETED)
+      .filter((stat) => stat._id === TransactionStatus.COMPLETED)
       .reduce((sum, stat) => sum + stat.totalAmount, 0);
 
     const pendingRevenue = revenueStats
-      .filter(stat => stat._id === TransactionStatus.PENDING)
+      .filter((stat) => stat._id === TransactionStatus.PENDING)
       .reduce((sum, stat) => sum + stat.totalAmount, 0);
 
     return {
@@ -309,11 +333,13 @@ export class WalletService {
   async processTransaction(input: ProcessTransactionInput, adminId: string) {
     const { transactionId, action, adminNote } = input;
 
-    const transaction = await this.transactionModel.findOne({
-      _id: transactionId,
-      status: TransactionStatus.PENDING,
-      type: TransactionType.DEPOSIT,
-    }).exec();
+    const transaction = await this.transactionModel
+      .findOne({
+        _id: transactionId,
+        status: TransactionStatus.PENDING,
+        type: TransactionType.DEPOSIT,
+      })
+      .exec();
 
     if (!transaction) {
       throw new NotFoundException('Transaction not found or already processed');

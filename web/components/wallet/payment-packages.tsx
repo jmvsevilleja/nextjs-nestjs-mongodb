@@ -4,8 +4,20 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Coins, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -52,8 +64,10 @@ interface PaymentPackage {
 export function PaymentPackages() {
   const [selectedProvider, setSelectedProvider] = useState<string>("");
   const [multiplier, setMultiplier] = useState<{ [key: string]: number }>({});
-  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
-  
+  const [processingPayment, setProcessingPayment] = useState<string | null>(
+    null
+  );
+
   const { toast } = useToast();
 
   const { data, loading, refetch } = useQuery(GET_PAYMENT_PACKAGES);
@@ -74,7 +88,7 @@ export function PaymentPackages() {
 
     try {
       const currentMultiplier = multiplier[pkg.id] || 1;
-      
+
       const { data: paymentData } = await createPaymentIntent({
         variables: {
           input: {
@@ -86,7 +100,7 @@ export function PaymentPackages() {
       });
 
       // Simulate payment processing (in real app, integrate with actual payment providers)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Mock payment confirmation
       await confirmPayment({
@@ -102,7 +116,9 @@ export function PaymentPackages() {
 
       toast({
         title: "Payment Successful!",
-        description: `${pkg.credits * currentMultiplier} credits have been added to your wallet.`,
+        description: `${
+          pkg.credits * currentMultiplier
+        } credits have been added to your wallet.`,
       });
 
       // Refetch wallet data
@@ -110,7 +126,8 @@ export function PaymentPackages() {
     } catch (error) {
       toast({
         title: "Payment Failed",
-        description: "There was an error processing your payment. Please try again.",
+        description:
+          "There was an error processing your payment. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -138,7 +155,9 @@ export function PaymentPackages() {
       </div>
 
       <div className="mb-6">
-        <label className="text-sm font-medium mb-2 block">Payment Provider</label>
+        <label className="text-sm font-medium mb-2 block">
+          Payment Provider
+        </label>
         <Select value={selectedProvider} onValueChange={setSelectedProvider}>
           <SelectTrigger className="w-full max-w-xs">
             <SelectValue placeholder="Select payment provider" />
@@ -185,7 +204,10 @@ export function PaymentPackages() {
                     <Select
                       value={currentMultiplier.toString()}
                       onValueChange={(value) =>
-                        setMultiplier(prev => ({ ...prev, [pkg.id]: parseInt(value) }))
+                        setMultiplier((prev) => ({
+                          ...prev,
+                          [pkg.id]: parseInt(value),
+                        }))
                       }
                     >
                       <SelectTrigger>
@@ -194,7 +216,8 @@ export function PaymentPackages() {
                       <SelectContent>
                         {[1, 2, 3, 4, 5, 10].map((num) => (
                           <SelectItem key={num} value={num.toString()}>
-                            {num}x - ${pkg.price * num} (${(pkg.credits * num).toLocaleString()} credits)
+                            {num}x - ${pkg.price * num} (
+                            {(pkg.credits * num).toLocaleString()} credits)
                           </SelectItem>
                         ))}
                       </SelectContent>
