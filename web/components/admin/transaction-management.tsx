@@ -132,9 +132,9 @@ export function TransactionManagement() {
   const getProviderIcon = (provider?: string) => {
     switch (provider) {
       case "PAYPAL":
-        return <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="PayPal" className="h-4" />;
+        return <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg\" alt="PayPal\" className="h-4" />;
       case "GCASH":
-        return <img src="https://logos-world.net/wp-content/uploads/2022/03/GCash-Logo.png" alt="GCash" className="h-4" />;
+        return <img src="https://logos-world.net/wp-content/uploads/2022/03/GCash-Logo.png\" alt="GCash\" className="h-4" />;
       default:
         return <CreditCard className="h-4 w-4" />;
     }
