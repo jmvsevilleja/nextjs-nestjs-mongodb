@@ -25,9 +25,9 @@ import { PaymentService } from './payment.service';
 @Injectable()
 export class WalletService {
   private readonly packages = {
-    '5': { price: 5, credits: 300 },
-    '10': { price: 10, credits: 600 },
-    '15': { price: 15, credits: 900 },
+    '5': { price: 5, credits: 200 },
+    '10': { price: 10, credits: 500 },
+    '15': { price: 15, credits: 800 },
   };
 
   constructor(
@@ -69,7 +69,12 @@ export class WalletService {
   }
 
   async createPaymentIntent(userId: string, input: CreatePaymentIntentInput) {
-    const { packageType, paymentProvider, multiplier = 1, transactionId } = input;
+    const {
+      packageType,
+      paymentProvider,
+      multiplier = 1,
+      transactionId,
+    } = input;
 
     if (!this.packages[packageType]) {
       throw new BadRequestException('Invalid package type');
@@ -83,14 +88,16 @@ export class WalletService {
     }
 
     // Check if transaction ID already exists
-    const existingTransaction = await this.transactionModel.findOne({
-      transactionId,
-      userId,
-    }).exec();
+    // const existingTransaction = await this.transactionModel
+    //   .findOne({
+    //     transactionId,
+    //     userId,
+    //   })
+    //   .exec();
 
-    if (existingTransaction) {
-      throw new BadRequestException('Transaction ID already exists');
-    }
+    // if (existingTransaction) {
+    //   throw new BadRequestException('Transaction ID already exists');
+    // }
 
     const wallet = await this.getOrCreateWallet(userId);
     const packageInfo = this.packages[packageType];
@@ -98,7 +105,7 @@ export class WalletService {
     const totalCredits = packageInfo.credits * multiplier;
 
     // Create transaction record
-    const transaction = new this.transactionModel({
+    const newTransaction = new this.transactionModel({
       userId,
       walletId: wallet.id,
       type: TransactionType.DEPOSIT,
@@ -112,8 +119,7 @@ export class WalletService {
       description: `Purchase ${multiplier}x $${packageType} package${multiplier > 1 ? 's' : ''} - Transaction ID: ${transactionId}`,
     });
 
-    await transaction.save();
-
+    const transaction = (await newTransaction.save()).toJSON();
     // Create payment intent based on provider
     let paymentIntent;
     switch (paymentProvider) {
@@ -160,16 +166,18 @@ export class WalletService {
     let isPaymentSuccessful = false;
     switch (transaction.paymentProvider) {
       case PaymentProvider.PAYPAL:
-        isPaymentSuccessful = await this.paymentService.verifyPayPalPayment(
-          `paypal_order_${transaction.id}`,
-          transaction.transactionId,
-        );
+        if (transaction.transactionId)
+          isPaymentSuccessful = await this.paymentService.verifyPayPalPayment(
+            `paypal_order_${transaction.id}`,
+            transaction.transactionId,
+          );
         break;
       case PaymentProvider.GCASH:
-        isPaymentSuccessful = await this.paymentService.verifyGCashPayment(
-          `gcash_payment_${transaction.id}`,
-          transaction.transactionId,
-        );
+        if (transaction.transactionId)
+          isPaymentSuccessful = await this.paymentService.verifyGCashPayment(
+            `gcash_payment_${transaction.id}`,
+            transaction.transactionId,
+          );
         break;
     }
 

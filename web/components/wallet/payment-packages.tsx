@@ -64,11 +64,17 @@ interface PaymentPackage {
 }
 
 export function PaymentPackages() {
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
+  const [selectedProvider, setSelectedProvider] = useState<string>("PAYPAL");
   const [multiplier, setMultiplier] = useState<{ [key: string]: number }>({});
-  const [transactionIds, setTransactionIds] = useState<{ [key: string]: string }>({});
-  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
-  const [paymentStep, setPaymentStep] = useState<{ [key: string]: 'input' | 'payment' | 'confirm' }>({});
+  const [transactionIds, setTransactionIds] = useState<{
+    [key: string]: string;
+  }>({});
+  const [processingPayment, setProcessingPayment] = useState<string | null>(
+    null
+  );
+  const [paymentStep, setPaymentStep] = useState<{
+    [key: string]: "input" | "payment" | "confirm";
+  }>({});
   const [paymentData, setPaymentData] = useState<any>(null);
 
   const { toast } = useToast();
@@ -113,7 +119,7 @@ export function PaymentPackages() {
       });
 
       setPaymentData(paymentData.createPaymentIntent);
-      setPaymentStep(prev => ({ ...prev, [pkg.id]: 'payment' }));
+      setPaymentStep((prev) => ({ ...prev, [pkg.id]: "payment" }));
     } catch (error: any) {
       toast({
         title: "Error",
@@ -141,14 +147,15 @@ export function PaymentPackages() {
 
       toast({
         title: "Payment Submitted!",
-        description: "Your payment has been submitted for admin review. Credits will be added once approved.",
+        description:
+          "Your payment has been submitted for admin review. Credits will be added once approved.",
       });
 
       // Reset form
-      setPaymentStep(prev => ({ ...prev, [pkg.id]: 'input' }));
-      setTransactionIds(prev => ({ ...prev, [pkg.id]: '' }));
+      setPaymentStep((prev) => ({ ...prev, [pkg.id]: "input" }));
+      setTransactionIds((prev) => ({ ...prev, [pkg.id]: "" }));
       setPaymentData(null);
-      
+
       // Refetch wallet data
       refetch();
     } catch (error: any) {
@@ -163,7 +170,7 @@ export function PaymentPackages() {
   };
 
   const resetPayment = (pkgId: string) => {
-    setPaymentStep(prev => ({ ...prev, [pkgId]: 'input' }));
+    setPaymentStep((prev) => ({ ...prev, [pkgId]: "input" }));
     setPaymentData(null);
   };
 
@@ -196,9 +203,9 @@ export function PaymentPackages() {
             onClick={() => setSelectedProvider("PAYPAL")}
             className="flex items-center gap-2 h-12"
           >
-            <img 
-              src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" 
-              alt="PayPal" 
+            <img
+              src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg"
+              alt="PayPal"
               className="h-6"
             />
           </Button>
@@ -207,9 +214,9 @@ export function PaymentPackages() {
             onClick={() => setSelectedProvider("GCASH")}
             className="flex items-center gap-2 h-12"
           >
-            <img 
-              src="https://logos-world.net/wp-content/uploads/2022/03/GCash-Logo.png" 
-              alt="GCash" 
+            <img
+              src="https://logos-world.net/wp-content/uploads/2022/03/GCash-Logo.png"
+              alt="GCash"
               className="h-6"
             />
           </Button>
@@ -221,7 +228,7 @@ export function PaymentPackages() {
           const currentMultiplier = multiplier[pkg.id] || 1;
           const totalPrice = pkg.price * currentMultiplier;
           const totalCredits = pkg.credits * currentMultiplier;
-          const currentStep = paymentStep[pkg.id] || 'input';
+          const currentStep = paymentStep[pkg.id] || "input";
 
           return (
             <Card key={pkg.id} className="relative">
@@ -245,7 +252,7 @@ export function PaymentPackages() {
                   </div>
                 </div>
 
-                {currentStep === 'input' && (
+                {currentStep === "input" && (
                   <>
                     {pkg.allowMultiple && (
                       <div className="space-y-2">
@@ -278,7 +285,7 @@ export function PaymentPackages() {
                       <Label>Transaction ID</Label>
                       <Input
                         placeholder="Enter your transaction ID"
-                        value={transactionIds[pkg.id] || ''}
+                        value={transactionIds[pkg.id] || ""}
                         onChange={(e) =>
                           setTransactionIds((prev) => ({
                             ...prev,
@@ -291,7 +298,11 @@ export function PaymentPackages() {
                     <Button
                       className="w-full"
                       onClick={() => handleProceedToPayment(pkg)}
-                      disabled={!selectedProvider || !transactionIds[pkg.id] || processingPayment === pkg.id}
+                      disabled={
+                        !selectedProvider ||
+                        !transactionIds[pkg.id] ||
+                        processingPayment === pkg.id
+                      }
                     >
                       {processingPayment === pkg.id ? (
                         <div className="flex items-center gap-2">
@@ -308,14 +319,14 @@ export function PaymentPackages() {
                   </>
                 )}
 
-                {currentStep === 'payment' && paymentData && (
+                {currentStep === "payment" && paymentData && (
                   <div className="space-y-4">
-                    {selectedProvider === 'PAYPAL' && (
+                    {selectedProvider === "PAYPAL" && (
                       <div className="text-center">
                         <p className="text-sm text-muted-foreground mb-4">
                           Click the PayPal button below to complete your payment
                         </p>
-                        <div 
+                        <div
                           dangerouslySetInnerHTML={{
                             __html: `
                               <style>.pp-4585S3JFG2YB4{text-align:center;border:none;border-radius:0.25rem;min-width:11.625rem;padding:0 2rem;height:2.625rem;font-weight:bold;background-color:#FFD140;color:#000000;font-family:"Helvetica Neue",Arial,sans-serif;font-size:1rem;line-height:1.25rem;cursor:pointer;}</style>
@@ -324,20 +335,20 @@ export function PaymentPackages() {
                                 <img src="https://www.paypalobjects.com/images/Debit_Credit.svg" alt="cards" />
                                 <section style="font-size: 0.75rem;"> Powered by <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="paypal" style="height:0.875rem;vertical-align:middle;"/></section>
                               </form>
-                            `
+                            `,
                           }}
                         />
                       </div>
                     )}
 
-                    {selectedProvider === 'GCASH' && paymentData.qrCode && (
+                    {selectedProvider === "GCASH" && paymentData.qrCode && (
                       <div className="text-center">
                         <p className="text-sm text-muted-foreground mb-4">
                           Scan the QR code below with your GCash app
                         </p>
-                        <img 
-                          src={paymentData.qrCode} 
-                          alt="GCash QR Code" 
+                        <img
+                          src={paymentData.qrCode}
+                          alt="GCash QR Code"
                           className="mx-auto border rounded-lg"
                         />
                         <p className="text-xs text-muted-foreground mt-2">

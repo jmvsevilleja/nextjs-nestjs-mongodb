@@ -11,11 +11,11 @@ type AdminTransaction {
   id: ID!
   multiplier: Int!
   packageType: String
-  paymentIntentId: String
   paymentProvider: PaymentProvider
   processedAt: DateTime
   processedBy: String
   status: TransactionStatus!
+  transactionId: String
   type: TransactionType!
   updatedAt: DateTime!
   userEmail: String!
@@ -37,9 +37,6 @@ type AuthResponse {
 }
 
 input ConfirmPaymentInput {
-  paymentIntentId: String
-  paymongoPaymentId: String
-  paypalOrderId: String
   transactionId: String!
 }
 
@@ -47,6 +44,7 @@ input CreatePaymentIntentInput {
   multiplier: Int = 1
   packageType: String!
   paymentProvider: PaymentProvider!
+  transactionId: String!
 }
 
 input CreateTodoInput {
@@ -87,9 +85,9 @@ type Mutation {
 }
 
 type PaymentIntent {
-  clientSecret: String!
-  paymongoCheckoutUrl: String
+  gcashPaymentId: String
   paypalOrderId: String
+  qrCode: String
   transactionId: String!
 }
 
@@ -103,9 +101,8 @@ type PaymentPackage {
 }
 
 enum PaymentProvider {
-  PAYMONGO
+  GCASH
   PAYPAL
-  STRIPE
 }
 
 input ProcessTransactionInput {
@@ -150,9 +147,9 @@ type Transaction {
   id: ID!
   multiplier: Int!
   packageType: String
-  paymentIntentId: String
   paymentProvider: PaymentProvider
   status: TransactionStatus!
+  transactionId: String
   type: TransactionType!
   updatedAt: DateTime!
   userId: String!
