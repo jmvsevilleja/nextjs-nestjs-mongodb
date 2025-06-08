@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserInput } from './dto/create-user.input';
+import { UpdateUserInput } from './dto/update-user.input';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
@@ -35,6 +36,13 @@ export class UsersService {
     return this.userModel
       .findByIdAndUpdate(id, updateData, { new: true })
       .exec();
+  }
+
+  async updateProfile(id: string, updateUserInput: UpdateUserInput): Promise<User | null> {
+    const user = await this.userModel
+      .findByIdAndUpdate(id, updateUserInput, { new: true })
+      .exec();
+    return user ? user?.toJSON() : null;
   }
 
   async findOneByEmail(email: string): Promise<User | null> {

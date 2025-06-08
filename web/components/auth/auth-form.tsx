@@ -72,7 +72,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           return;
         }
 
-        router.push("/dashboard");
+        router.push("/profile");
         router.refresh();
       } catch {
         setError("An unexpected error occurred. Please try again.");
@@ -129,7 +129,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           return;
         }
 
-        router.push("/dashboard");
+        router.push("/profile");
         router.refresh();
       } catch {
         setError("An unexpected error occurred. Please try again.");
@@ -238,7 +238,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         variant="outline"
         type="button"
         className="w-full"
-        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+        onClick={() => signIn("google", { callbackUrl: "/profile" })}
         disabled={isLoading}
       >
         <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">

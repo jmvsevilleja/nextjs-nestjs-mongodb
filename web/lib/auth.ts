@@ -198,6 +198,17 @@ export const authOptions: NextAuthOptions = {
 
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      // Redirect to profile page after successful login
+      if (url === baseUrl || url === `${baseUrl}/`) {
+        return `${baseUrl}/profile`;
+      }
+      // Allow relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allow callback URLs on the same origin
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
   },
   events: {
     async signOut({ token }) {

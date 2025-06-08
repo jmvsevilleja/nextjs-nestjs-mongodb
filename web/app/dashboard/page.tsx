@@ -2,13 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ListTodo, LogOut, Wallet } from "lucide-react";
+import { ListTodo, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "next-auth/react";
 import { TodoContainer } from "@/components/todo/todo-container";
 import { WalletDisplay } from "@/components/wallet/wallet-display";
-import Link from "next/link";
+import { UserAvatar } from "@/components/user-avatar";
+import { Navigation } from "@/components/navigation";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -35,17 +36,12 @@ export default function DashboardPage() {
             <ListTodo className="h-6 w-6" />
             <span className="font-semibold">Todo App</span>
           </div>
+          
+          <Navigation />
+
           <div className="flex items-center gap-4">
-            <Link href="/wallet">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <Wallet className="h-4 w-4" />
-                <span className="hidden sm:inline">Wallet</span>
-              </Button>
-            </Link>
             <WalletDisplay />
-            <p className="text-sm text-muted-foreground">
-              Welcome, {session?.user?.name || session?.user?.email}
-            </p>
+            <UserAvatar />
             <ThemeToggle />
             <Button
               variant="ghost"
