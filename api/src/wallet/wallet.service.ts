@@ -88,16 +88,16 @@ export class WalletService {
     }
 
     // Check if transaction ID already exists
-    // const existingTransaction = await this.transactionModel
-    //   .findOne({
-    //     transactionId,
-    //     userId,
-    //   })
-    //   .exec();
+    const existingTransaction = await this.transactionModel
+      .findOne({
+        transactionId,
+        userId,
+      })
+      .exec();
 
-    // if (existingTransaction) {
-    //   throw new BadRequestException('Transaction ID already exists');
-    // }
+    if (existingTransaction) {
+      throw new BadRequestException('Transaction ID already exists');
+    }
 
     const wallet = await this.getOrCreateWallet(userId);
     const packageInfo = this.packages[packageType];

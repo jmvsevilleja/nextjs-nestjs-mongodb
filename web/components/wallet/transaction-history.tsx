@@ -2,12 +2,18 @@
 
 import { useQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { format } from "date-fns";
 
-const GET_TRANSACTION_HISTORY = gql`
+export const GET_TRANSACTION_HISTORY = gql`
   query GetTransactionHistory($limit: Int, $offset: Int) {
     transactionHistory(limit: $limit, offset: $offset) {
       id
@@ -104,11 +110,18 @@ export function TransactionHistory() {
                 )}
                 <div>
                   <p className="font-medium">
-                    {transaction.description || 
-                     `${transaction.type === "DEPOSIT" ? "Credit Purchase" : "Credit Usage"}`}
+                    {transaction.description ||
+                      `${
+                        transaction.type === "DEPOSIT"
+                          ? "Credit Purchase"
+                          : "Credit Usage"
+                      }`}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(transaction.createdAt), "MMM dd, yyyy 'at' h:mm a")}
+                    {format(
+                      new Date(transaction.createdAt),
+                      "MMM dd, yyyy 'at' h:mm a"
+                    )}
                   </p>
                   {transaction.paymentProvider && (
                     <p className="text-xs text-muted-foreground">
@@ -119,10 +132,15 @@ export function TransactionHistory() {
               </div>
               <div className="text-right">
                 <div className="flex items-center gap-2">
-                  <span className={`font-medium ${
-                    transaction.type === "DEPOSIT" ? "text-green-600" : "text-red-600"
-                  }`}>
-                    {transaction.type === "DEPOSIT" ? "+" : "-"}{transaction.credits} credits
+                  <span
+                    className={`font-medium ${
+                      transaction.type === "DEPOSIT"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {transaction.type === "DEPOSIT" ? "+" : "-"}
+                    {transaction.credits} credits
                   </span>
                   <Badge className={getStatusColor(transaction.status)}>
                     {transaction.status}
