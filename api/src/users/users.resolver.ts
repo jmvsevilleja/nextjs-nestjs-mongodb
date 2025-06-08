@@ -1,7 +1,8 @@
-import { Resolver, Query, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { Inject, UseGuards } from '@nestjs/common';
 import { User } from './models/user.model';
 import { UsersService } from './users.service';
+import { UpdateUserInput } from './dto/update-user.input';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -32,5 +33,18 @@ export class UsersResolver {
       id: id,
     });
     return this.usersService.findOneById(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Mutation(() => User)
+  async updateUser(
+    @Args('input') updateUserInput: UpdateUserInput,
+    @CurrentUser() user: any,
+  ): Promise<User | null> {
+    this.logger.info('Processing updateUser request', {
+      userId: user.id,
+      input: updateUserInput,
+    });
+    return this.usersService.updateProfile(user.id, updateUserInput);
   }
 }
