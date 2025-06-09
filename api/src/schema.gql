@@ -82,6 +82,7 @@ type Mutation {
   refreshTokens(refreshToken: String!, userId: String!): AuthResponse!
   signup(input: CreateUserInput!): AuthResponse!
   updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
+  updateUser(input: UpdateUserInput!): User!
 }
 
 type PaymentIntent {
@@ -187,6 +188,11 @@ input UpdateTodoInput {
   completed: Boolean
   description: String
   title: String
+}
+
+input UpdateUserInput {
+  name: String
+  profilePicture: String
 }
 
 type User {

@@ -1,5 +1,5 @@
 "use client";
-
+import React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -10,7 +10,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ListTodo, LogOut, Camera, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -68,24 +74,27 @@ export default function ProfilePage() {
     skip: status !== "authenticated",
   });
 
-  const [updateProfile, { loading: updateLoading }] = useMutation(UPDATE_USER_PROFILE, {
-    onCompleted: (data) => {
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
-      // Update the session with new data
-      update();
-      refetch();
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  const [updateProfile, { loading: updateLoading }] = useMutation(
+    UPDATE_USER_PROFILE,
+    {
+      onCompleted: (data) => {
+        toast({
+          title: "Success",
+          description: "Profile updated successfully",
+        });
+        // Update the session with new data
+        update();
+        refetch();
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    }
+  );
 
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -120,12 +129,14 @@ export default function ProfilePage() {
 
   const user = data?.me;
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       toast({
         title: "Error",
         description: "Please select a valid image file",
@@ -149,10 +160,10 @@ export default function ProfilePage() {
     try {
       // For demo purposes, we'll use a placeholder image service
       // In a real app, you'd upload to your own storage service
-      const imageUrl = `https://picsum.photos/200/200?random=${Date.now()}`;
-      
+      const imageUrl = `https://i.pravatar.cc/200`;
+
       form.setValue("profilePicture", imageUrl);
-      
+
       toast({
         title: "Success",
         description: "Image uploaded successfully",
@@ -191,7 +202,7 @@ export default function ProfilePage() {
             <ListTodo className="h-6 w-6" />
             <span className="font-semibold">Todo App</span>
           </div>
-          
+
           <Navigation />
 
           <div className="flex items-center gap-4">
@@ -229,12 +240,14 @@ export default function ProfilePage() {
               <div className="flex items-center gap-6">
                 <div className="relative">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage 
-                      src={form.watch("profilePicture") || user?.profilePicture} 
-                      alt={user?.name || "Profile"} 
+                    <AvatarImage
+                      src={form.watch("profilePicture") || user?.profilePicture}
+                      alt={user?.name || "Profile"}
                     />
                     <AvatarFallback className="text-lg">
-                      {user?.name?.charAt(0)?.toUpperCase() || <User className="h-8 w-8" />}
+                      {user?.name?.charAt(0)?.toUpperCase() || (
+                        <User className="h-8 w-8" />
+                      )}
                     </AvatarFallback>
                   </Avatar>
                   <label
@@ -265,7 +278,10 @@ export default function ProfilePage() {
 
               {/* Profile Form */}
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="name"
@@ -314,8 +330,8 @@ export default function ProfilePage() {
                     )}
                   />
 
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={updateLoading || isUploading}
                     className="w-full"
                   >

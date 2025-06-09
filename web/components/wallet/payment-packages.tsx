@@ -266,8 +266,7 @@ export function PaymentPackages() {
                               <form action="https://www.paypal.com/ncp/payment/4585S3JFG2YB4" method="post" target="_blank" style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;">
                                 <input class="pp-4585S3JFG2YB4" type="submit" value="Pay Now" />
                                 <img src="https://www.paypalobjects.com/images/Debit_Credit.svg" alt="cards" />
-                                <section style="font-size: 0.75rem;"> Powered by <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="paypal" style="height:0.875rem;vertical-align:middle;"/></section>
-                              </form>
+                                </form>
                             `,
                           }}
                         />
