@@ -2,19 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ListTodo, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { signOut } from "next-auth/react";
-import { WalletDisplay } from "@/components/wallet/wallet-display";
 import { PaymentPackages } from "@/components/wallet/payment-packages";
 import { TransactionHistory } from "@/components/wallet/transaction-history";
-import { UserAvatar } from "@/components/user-avatar";
-import { Navigation } from "@/components/navigation";
 import { MainHeader } from "@/components/layout/main-header";
 
 export default function WalletPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   if (status === "loading") {

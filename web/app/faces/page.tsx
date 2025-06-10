@@ -153,9 +153,9 @@ export default function FacesPage() {
     setDisplayedFaces(processedFaces.slice(startIndex, endIndex));
   }, [allFaces, searchTerm, sortBy, sortOrder, currentPage]);
 
-  const totalPages = Math.ceil(
-    (searchTerm ? displayedFaces.length : allFaces.length) / ITEMS_PER_PAGE
-  );
+  // const totalPages = Math.ceil(
+  //   (searchTerm ? displayedFaces.length : allFaces.length) / ITEMS_PER_PAGE
+  // );
 
   // Recalculate total pages for pagination component based on current filtering.
   // If a search term is active, total pages depend on the length of the filtered (but not yet paginated) list.

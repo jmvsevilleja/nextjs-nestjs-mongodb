@@ -4,10 +4,16 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { CheckCircle, XCircle, Clock, User, CreditCard, DollarSign } from "lucide-react";
+import { CheckCircle, XCircle, Clock, User, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
@@ -65,7 +71,9 @@ interface AdminTransaction {
 
 export function TransactionManagement() {
   const [selectedStatus, setSelectedStatus] = useState("PENDING");
-  const [processingTransaction, setProcessingTransaction] = useState<string | null>(null);
+  const [processingTransaction, setProcessingTransaction] = useState<
+    string | null
+  >(null);
   const { toast } = useToast();
 
   const { data, loading, refetch } = useQuery(GET_ADMIN_TRANSACTIONS, {
@@ -96,9 +104,13 @@ export function TransactionManagement() {
     },
   });
 
-  const handleProcessTransaction = async (transactionId: string, action: "APPROVE" | "REJECT", adminNote?: string) => {
+  const handleProcessTransaction = async (
+    transactionId: string,
+    action: "APPROVE" | "REJECT",
+    adminNote?: string
+  ) => {
     setProcessingTransaction(transactionId);
-    
+
     try {
       await processTransaction({
         variables: {
@@ -132,9 +144,21 @@ export function TransactionManagement() {
   const getProviderIcon = (provider?: string) => {
     switch (provider) {
       case "PAYPAL":
-        return <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg\" alt="PayPal\" className="h-4" />;
+        return (
+          <img
+            src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg\"
+            alt="PayPal\"
+            className="h-4"
+          />
+        );
       case "GCASH":
-        return <img src="https://logos-world.net/wp-content/uploads/2022/03/GCash-Logo.png\" alt="GCash\" className="h-4" />;
+        return (
+          <img
+            src="https://logos-world.net/wp-content/uploads/2022/03/GCash-Logo.png\"
+            alt="GCash\"
+            className="h-4"
+          />
+        );
       default:
         return <CreditCard className="h-4 w-4" />;
     }
@@ -155,7 +179,8 @@ export function TransactionManagement() {
     );
   }
 
-  const transactions: AdminTransaction[] = data?.adminTransactions?.transactions || [];
+  const transactions: AdminTransaction[] =
+    data?.adminTransactions?.transactions || [];
 
   return (
     <Card>
@@ -166,7 +191,11 @@ export function TransactionManagement() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs value={selectedStatus} onValueChange={setSelectedStatus} className="w-full">
+        <Tabs
+          value={selectedStatus}
+          onValueChange={setSelectedStatus}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="PENDING">Pending</TabsTrigger>
             <TabsTrigger value="COMPLETED">Completed</TabsTrigger>
@@ -194,12 +223,14 @@ export function TransactionManagement() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{transaction.userName}</span>
+                          <span className="font-medium">
+                            {transaction.userName}
+                          </span>
                           <span className="text-sm text-muted-foreground">
                             ({transaction.userEmail})
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-2">
                             {getProviderIcon(transaction.paymentProvider)}
@@ -219,40 +250,54 @@ export function TransactionManagement() {
                         {transaction.transactionId && (
                           <div className="bg-muted p-3 rounded-md">
                             <p className="text-sm">
-                              <strong>User Transaction ID:</strong> {transaction.transactionId}
+                              <strong>User Transaction ID:</strong>{" "}
+                              {transaction.transactionId}
                             </p>
                           </div>
                         )}
 
                         <div className="flex items-center gap-4 text-sm">
                           <span>
-                            <strong>Amount:</strong> ${transaction.amount.toFixed(2)}
+                            <strong>Amount:</strong> $
+                            {transaction.amount.toFixed(2)}
                           </span>
                           <span>
-                            <strong>Credits:</strong> {transaction.credits.toLocaleString()}
+                            <strong>Credits:</strong>{" "}
+                            {transaction.credits.toLocaleString()}
                           </span>
                           {transaction.multiplier > 1 && (
                             <span>
-                              <strong>Quantity:</strong> {transaction.multiplier}x
+                              <strong>Quantity:</strong>{" "}
+                              {transaction.multiplier}x
                             </span>
                           )}
                         </div>
 
                         <p className="text-xs text-muted-foreground">
-                          Created: {format(new Date(transaction.createdAt), "MMM dd, yyyy 'at' h:mm a")}
+                          Created:{" "}
+                          {format(
+                            new Date(transaction.createdAt),
+                            "MMM dd, yyyy 'at' h:mm a"
+                          )}
                         </p>
 
                         {transaction.processedAt && (
                           <p className="text-xs text-muted-foreground">
-                            Processed: {format(new Date(transaction.processedAt), "MMM dd, yyyy 'at' h:mm a")}
-                            {transaction.processedBy && ` by ${transaction.processedBy}`}
+                            Processed:{" "}
+                            {format(
+                              new Date(transaction.processedAt),
+                              "MMM dd, yyyy 'at' h:mm a"
+                            )}
+                            {transaction.processedBy &&
+                              ` by ${transaction.processedBy}`}
                           </p>
                         )}
 
                         {transaction.adminNote && (
                           <div className="bg-muted p-3 rounded-md">
                             <p className="text-sm">
-                              <strong>Admin Note:</strong> {transaction.adminNote}
+                              <strong>Admin Note:</strong>{" "}
+                              {transaction.adminNote}
                             </p>
                           </div>
                         )}
@@ -264,7 +309,13 @@ export function TransactionManagement() {
                             size="sm"
                             variant="outline"
                             className="text-green-600 border-green-600 hover:bg-green-50"
-                            onClick={() => handleProcessTransaction(transaction.id, "APPROVE", "Approved by admin")}
+                            onClick={() =>
+                              handleProcessTransaction(
+                                transaction.id,
+                                "APPROVE",
+                                "Approved by admin"
+                              )
+                            }
                             disabled={processingTransaction === transaction.id}
                           >
                             {processingTransaction === transaction.id ? (
@@ -278,7 +329,13 @@ export function TransactionManagement() {
                             size="sm"
                             variant="outline"
                             className="text-red-600 border-red-600 hover:bg-red-50"
-                            onClick={() => handleProcessTransaction(transaction.id, "REJECT", "Rejected by admin")}
+                            onClick={() =>
+                              handleProcessTransaction(
+                                transaction.id,
+                                "REJECT",
+                                "Rejected by admin"
+                              )
+                            }
                             disabled={processingTransaction === transaction.id}
                           >
                             {processingTransaction === transaction.id ? (

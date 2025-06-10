@@ -2,18 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ListTodo, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { signOut } from "next-auth/react";
 import { TodoContainer } from "@/components/todo/todo-container";
-import { WalletDisplay } from "@/components/wallet/wallet-display";
-import { UserAvatar } from "@/components/user-avatar";
 import { MainHeader } from "@/components/layout/main-header";
-import { Main } from "next/document";
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   if (status === "loading") {

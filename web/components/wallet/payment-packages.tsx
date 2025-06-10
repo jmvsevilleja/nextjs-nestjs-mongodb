@@ -49,11 +49,11 @@ const CREATE_PAYMENT_INTENT = gql`
   }
 `;
 
-const CONFIRM_PAYMENT = gql`
-  mutation ConfirmPayment($input: ConfirmPaymentInput!) {
-    confirmPayment(input: $input)
-  }
-`;
+// const CONFIRM_PAYMENT = gql`
+//   mutation ConfirmPayment($input: ConfirmPaymentInput!) {
+//     confirmPayment(input: $input)
+//   }
+// `;
 
 interface PaymentPackage {
   id: string;
@@ -137,10 +137,10 @@ export function PaymentPackages() {
       // Refetch wallet data
       refetch();
       //setPaymentStep((prev) => ({ ...prev, [pkg.id]: "payment" }));
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create payment intent",
+        description: "Failed to create payment intent: " + (error ? error : ""),
         variant: "destructive",
       });
     } finally {

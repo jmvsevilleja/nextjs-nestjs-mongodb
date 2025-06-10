@@ -32,7 +32,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "next-auth/react";
 import { WalletDisplay } from "@/components/wallet/wallet-display";
 import { useToast } from "@/hooks/use-toast";
-import Link from "next/link";
 import { Navigation } from "@/components/navigation";
 
 const GET_USER_PROFILE = gql`
@@ -65,7 +64,7 @@ const profileFormSchema = z.object({
 });
 
 export default function ProfilePage() {
-  const { data: session, status, update } = useSession();
+  const { status, update } = useSession();
   const router = useRouter();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
@@ -77,7 +76,7 @@ export default function ProfilePage() {
   const [updateProfile, { loading: updateLoading }] = useMutation(
     UPDATE_USER_PROFILE,
     {
-      onCompleted: (data) => {
+      onCompleted: () => {
         toast({
           title: "Success",
           description: "Profile updated successfully",
@@ -171,7 +170,7 @@ export default function ProfilePage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to upload image",
+        description: "Failed to upload image :" + (error ? error : ""),
         variant: "destructive",
       });
     } finally {

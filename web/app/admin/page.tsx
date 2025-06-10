@@ -4,9 +4,16 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
-import { ListTodo, LogOut, Users, DollarSign, Clock, CheckCircle, XCircle } from "lucide-react";
+import {
+  ListTodo,
+  LogOut,
+  Users,
+  DollarSign,
+  Clock,
+  CheckCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "next-auth/react";
 import { TransactionManagement } from "@/components/admin/transaction-management";
@@ -29,9 +36,12 @@ export default function AdminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const { data: statsData, loading: statsLoading } = useQuery(GET_TRANSACTION_STATS, {
-    skip: status !== "authenticated",
-  });
+  const { data: statsData, loading: statsLoading } = useQuery(
+    GET_TRANSACTION_STATS,
+    {
+      skip: status !== "authenticated",
+    }
+  );
 
   if (status === "loading") {
     return (
@@ -52,10 +62,12 @@ export default function AdminPage() {
       <div className="flex h-screen items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-center text-destructive">Access Denied</CardTitle>
+            <CardTitle className="text-center text-destructive">
+              Access Denied
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <p>You don't have permission to access this page.</p>
+            <p>You don&apos;t have permission to access this page.</p>
             <Button onClick={() => router.push("/dashboard")}>
               Go to Dashboard
             </Button>
@@ -105,7 +117,9 @@ export default function AdminPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Transactions
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -125,7 +139,9 @@ export default function AdminPage() {
                 {statsLoading ? "..." : stats?.pendingTransactions || 0}
               </div>
               <p className="text-xs text-muted-foreground">
-                ${statsLoading ? "..." : (stats?.pendingRevenue || 0).toFixed(2)} pending
+                $
+                {statsLoading ? "..." : (stats?.pendingRevenue || 0).toFixed(2)}{" "}
+                pending
               </p>
             </CardContent>
           </Card>
@@ -144,7 +160,9 @@ export default function AdminPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Revenue
+              </CardTitle>
               <DollarSign className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
@@ -162,7 +180,8 @@ export default function AdminPage() {
       <footer className="border-t py-6">
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-center text-sm leading-loose text-muted-foreground">
-            &copy; {new Date().getFullYear()} Todo App Admin Panel. All rights reserved.
+            &copy; {new Date().getFullYear()} Todo App Admin Panel. All rights
+            reserved.
           </p>
         </div>
       </footer>
