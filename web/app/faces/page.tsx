@@ -120,8 +120,8 @@ export default function FacesPage() {
     // 2. Sorting
     if (sortBy) {
       processedFaces.sort((a, b) => {
-        let valA: any;
-        let valB: any;
+        let valA: number | string | Date | undefined;
+        let valB: number | string | Date | undefined;
 
         if (sortBy === "name") {
           valA = a.name.toLowerCase();
