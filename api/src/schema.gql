@@ -66,6 +66,16 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type Face {
+  createdAt: DateTime
+  id: ID!
+  imageUrl: String!
+  likes: Int!
+  name: String!
+  updatedAt: DateTime
+  views: Int!
+}
+
 input LoginInput {
   email: String!
   password: String!
@@ -114,6 +124,7 @@ input ProcessTransactionInput {
 
 type Query {
   adminTransactions(limit: Int = 20, offset: Int = 0, status: String): AdminTransactionConnection!
+  allFaces: [Face!]!
   me: User!
   myWallet: Wallet!
   paymentPackages: [PaymentPackage!]!

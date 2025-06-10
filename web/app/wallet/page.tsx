@@ -11,6 +11,7 @@ import { PaymentPackages } from "@/components/wallet/payment-packages";
 import { TransactionHistory } from "@/components/wallet/transaction-history";
 import { UserAvatar } from "@/components/user-avatar";
 import { Navigation } from "@/components/navigation";
+import { MainHeader } from "@/components/layout/main-header";
 
 export default function WalletPage() {
   const { data: session, status } = useSession();
@@ -31,29 +32,7 @@ export default function WalletPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ListTodo className="h-6 w-6" />
-            <span className="font-semibold">Todo App - Wallet</span>
-          </div>
-          
-          <Navigation />
-
-          <div className="flex items-center gap-4">
-            <WalletDisplay />
-            <UserAvatar />
-            <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => signOut({ callbackUrl: "/" })}
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <MainHeader />
 
       <main className="container flex-1 py-8 space-y-8">
         <PaymentPackages />
