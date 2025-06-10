@@ -2,13 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { Face } from './models/face.model';
 import { v4 as uuidv4 } from 'uuid';
 
+interface FaceInteraction {
+  userId: string;
+  faceId: string;
+  hasViewed: boolean;
+  hasLiked: boolean;
+}
+
 @Injectable()
 export class FacesService {
   private mockFaces: Face[] = [
     {
       id: uuidv4(),
       name: 'Alice Wonderland',
-      imageUrl: 'https://example.com/alice.jpg',
+      imageUrl: 'https://i.pravatar.cc/300?u=101',
       views: 150,
       likes: 75,
       createdAt: new Date('2024-01-15T10:30:00Z'),
@@ -17,7 +24,7 @@ export class FacesService {
     {
       id: uuidv4(),
       name: 'Bob The Builder',
-      imageUrl: 'https://example.com/bob.jpg',
+      imageUrl: 'https://i.pravatar.cc/300?u=102',
       views: 2500,
       likes: 1200,
       createdAt: new Date('2024-02-20T08:00:00Z'),
@@ -26,7 +33,7 @@ export class FacesService {
     {
       id: uuidv4(),
       name: 'Charlie Chaplin',
-      imageUrl: 'https://example.com/charlie.jpg',
+      imageUrl: 'https://i.pravatar.cc/300?u=103',
       views: 5000,
       likes: 2500,
       createdAt: new Date('2023-12-10T14:15:00Z'),
@@ -35,7 +42,7 @@ export class FacesService {
     {
       id: uuidv4(),
       name: 'Diana Prince',
-      imageUrl: 'https://example.com/diana.jpg',
+      imageUrl: 'https://i.pravatar.cc/300?u=104',
       views: 800,
       likes: 400,
       createdAt: new Date('2024-03-01T12:00:00Z'),
@@ -43,22 +50,86 @@ export class FacesService {
     },
   ];
 
+  // In-memory storage for user interactions (in production, use database)
+  private userInteractions: FaceInteraction[] = [];
+
   async findAll(): Promise<Face[]> {
     return this.mockFaces;
   }
 
-  // Placeholder for future create method using CreateFaceInput
-  // import { CreateFaceInput } from './dto/create-face.input';
-  // async create(createFaceInput: CreateFaceInput): Promise<Face> {
-  //   const newFace: Face = {
-  //     id: uuidv4(),
-  //     ...createFaceInput, // Spread properties from input DTO
-  //     views: createFaceInput.views || 0, // Ensure default if not provided
-  //     likes: createFaceInput.likes || 0, // Ensure default if not provided
-  //     createdAt: new Date(),
-  //     updatedAt: new Date(),
-  //   };
-  //   this.mockFaces.push(newFace); // Add to the local mock array
-  //   return newFace;
-  // }
+  async incrementView(faceId: string, userId: string): Promise<Face> {
+    const face = this.mockFaces.find(f => f.id === faceId);
+    if (!face) {
+      throw new Error('Face not found');
+    }
+
+    // Check if user has already viewed this face
+    let interaction = this.userInteractions.find(
+      i => i.userId === userId && i.faceId === faceId
+    );
+
+    if (!interaction) {
+      // Create new interaction record
+      interaction = {
+        userId,
+        faceId,
+        hasViewed: false,
+        hasLiked: false,
+      };
+      this.userInteractions.push(interaction);
+    }
+
+    // Only increment view count once per user
+    if (!interaction.hasViewed) {
+      face.views += 1;
+      interaction.hasViewed = true;
+      face.updatedAt = new Date();
+    }
+
+    return face;
+  }
+
+  async toggleLike(faceId: string, userId: string): Promise<Face & { isLiked: boolean }> {
+    const face = this.mockFaces.find(f => f.id === faceId);
+    if (!face) {
+      throw new Error('Face not found');
+    }
+
+    // Find or create user interaction
+    let interaction = this.userInteractions.find(
+      i => i.userId === userId && i.faceId === faceId
+    );
+
+    if (!interaction) {
+      interaction = {
+        userId,
+        faceId,
+        hasViewed: false,
+        hasLiked: false,
+      };
+      this.userInteractions.push(interaction);
+    }
+
+    // Toggle like status
+    if (interaction.hasLiked) {
+      face.likes -= 1;
+      interaction.hasLiked = false;
+    } else {
+      face.likes += 1;
+      interaction.hasLiked = true;
+    }
+
+    face.updatedAt = new Date();
+
+    return {
+      ...face,
+      isLiked: interaction.hasLiked,
+    };
+  }
+
+  async getUserInteraction(faceId: string, userId: string): Promise<FaceInteraction | null> {
+    return this.userInteractions.find(
+      i => i.userId === userId && i.faceId === faceId
+    ) || null;
+  }
 }

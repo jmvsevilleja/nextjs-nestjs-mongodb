@@ -22,4 +22,7 @@ export class Face {
 
   @Field({ nullable: true })
   updatedAt?: Date;
+
+  @Field({ nullable: true })
+  isLiked?: boolean;
 }

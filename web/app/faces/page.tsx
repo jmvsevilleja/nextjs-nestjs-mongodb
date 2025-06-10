@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import Image from "next/image"; // For optimized images
+import { useState, useEffect, useMemo, useCallback } from "react";
+import Image from "next/image";
+import { useQuery, useMutation } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,15 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationEllipsis,
-} from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,7 +20,69 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { MainHeader } from "@/components/layout/main-header";
+import { Heart, Eye, Loader2, ShoppingCart } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
+const GET_ALL_FACES = gql`
+  query GetAllFaces {
+    allFaces {
+      id
+      name
+      imageUrl
+      views
+      likes
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const GET_WALLET = gql`
+  query GetWallet {
+    myWallet {
+      id
+      credits
+    }
+  }
+`;
+
+const INCREMENT_FACE_VIEW = gql`
+  mutation IncrementFaceView($faceId: ID!) {
+    incrementFaceView(faceId: $faceId) {
+      id
+      views
+    }
+  }
+`;
+
+const TOGGLE_FACE_LIKE = gql`
+  mutation ToggleFaceLike($faceId: ID!) {
+    toggleFaceLike(faceId: $faceId) {
+      id
+      likes
+      isLiked
+    }
+  }
+`;
+
+const DEDUCT_CREDITS = gql`
+  mutation DeductCredits($amount: Int!, $description: String!) {
+    deductCredits(amount: $amount, description: $description) {
+      success
+      newBalance
+    }
+  }
+`;
 
 interface Face {
   id: string;
@@ -36,6 +91,7 @@ interface Face {
   views: number;
   likes: number;
   createdAt: Date;
+  isLiked?: boolean;
 }
 
 const ITEMS_PER_PAGE = 8;
@@ -44,84 +100,91 @@ const ITEMS_PER_PAGE = 8;
 const generateMockFaces = (count: number): Face[] => {
   const faces: Face[] = [];
   const firstNames = [
-    "Alice",
-    "Bob",
-    "Charlie",
-    "Diana",
-    "Edward",
-    "Fiona",
-    "George",
-    "Hannah",
-    "Ian",
-    "Julia",
+    "Alice", "Bob", "Charlie", "Diana", "Edward", "Fiona", "George", "Hannah", 
+    "Ian", "Julia", "Kevin", "Luna", "Marcus", "Nina", "Oscar", "Petra", 
+    "Quinn", "Rosa", "Sam", "Tara", "Uma", "Victor", "Wendy", "Xander", "Yara", "Zoe"
   ];
   const lastNames = [
-    "Smith",
-    "Jones",
-    "Williams",
-    "Brown",
-    "Davis",
-    "Miller",
-    "Wilson",
-    "Moore",
-    "Taylor",
-    "Anderson",
+    "Smith", "Jones", "Williams", "Brown", "Davis", "Miller", "Wilson", "Moore", 
+    "Taylor", "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin", "Thompson",
+    "Garcia", "Martinez", "Robinson", "Clark", "Rodriguez", "Lewis", "Lee", "Walker"
   ];
 
   for (let i = 1; i <= count; i++) {
-    const randomFirstName =
-      firstNames[Math.floor(Math.random() * firstNames.length)];
-    const randomLastName =
-      lastNames[Math.floor(Math.random() * lastNames.length)];
+    const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
     faces.push({
       id: `mock-${i}`,
       name: `${randomFirstName} ${randomLastName} ${i}`,
-      // Using picsum.photos for diverse placeholder images
-      //imageUrl: `https://picsum.photos/seed/${i + 100}/300/300`,
       imageUrl: `https://i.pravatar.cc/300?u=${i + 100}`,
       views: Math.floor(Math.random() * 10000),
       likes: Math.floor(Math.random() * 5000),
       createdAt: new Date(
         Date.now() - Math.floor(Math.random() * 1000 * 60 * 60 * 24 * 365)
-      ), // Random date in last year
+      ),
+      isLiked: Math.random() > 0.7, // Random like status
     });
   }
   return faces;
 };
 
 export default function FacesPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  // State for faces and UI
   const [allFaces, setAllFaces] = useState<Face[]>([]);
   const [displayedFaces, setDisplayedFaces] = useState<Face[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreFaces, setHasMoreFaces] = useState(true);
 
   // State for UI controls
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("createdAt"); // Default sort: name, views, likes, createdAt
-  const [sortOrder, setSortOrder] = useState("desc"); // Default order: asc, desc
-  // const [selectedFilters, setSelectedFilters] = useState({}); // Placeholder for future filters
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
 
-  // Initial data loading (client-side)
+  // State for image viewing
+  const [selectedFace, setSelectedFace] = useState<Face | null>(null);
+  const [showCreditPrompt, setShowCreditPrompt] = useState(false);
+  const [viewedFaces, setViewedFaces] = useState<Set<string>>(new Set());
+
+  // GraphQL queries and mutations
+  const { data: walletData, refetch: refetchWallet } = useQuery(GET_WALLET, {
+    skip: !session,
+  });
+
+  const [incrementFaceView] = useMutation(INCREMENT_FACE_VIEW);
+  const [toggleFaceLike] = useMutation(TOGGLE_FACE_LIKE);
+  const [deductCredits] = useMutation(DEDUCT_CREDITS, {
+    onCompleted: () => {
+      refetchWallet();
+    },
+  });
+
+  // Initial data loading
   useEffect(() => {
-    const mockData = generateMockFaces(25); // Generate 25 mock faces
+    const mockData = generateMockFaces(50); // Generate 50 mock faces
     setAllFaces(mockData);
   }, []);
 
-  // Processing logic: filtering, sorting, pagination
-  useEffect(() => {
-    let processedFaces = [...allFaces];
+  // Processing logic: filtering, sorting
+  const processedFaces = useMemo(() => {
+    let filtered = [...allFaces];
 
     // 1. Filtering
     if (searchTerm) {
-      processedFaces = processedFaces.filter((face) =>
+      filtered = filtered.filter((face) =>
         face.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // 2. Sorting
     if (sortBy) {
-      processedFaces.sort((a, b) => {
-        let valA: number | string | Date | undefined;
-        let valB: number | string | Date | undefined;
+      filtered.sort((a, b) => {
+        let valA: number | string | Date;
+        let valB: number | string | Date;
 
         if (sortBy === "name") {
           valA = a.name.toLowerCase();
@@ -136,7 +199,6 @@ export default function FacesPage() {
           valA = a.createdAt.getTime();
           valB = b.createdAt.getTime();
         } else {
-          // default to createdAt if sortBy is unrecognized
           valA = a.createdAt.getTime();
           valB = b.createdAt.getTime();
         }
@@ -147,34 +209,45 @@ export default function FacesPage() {
       });
     }
 
-    // 3. Pagination
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    setDisplayedFaces(processedFaces.slice(startIndex, endIndex));
-  }, [allFaces, searchTerm, sortBy, sortOrder, currentPage]);
+    return filtered;
+  }, [allFaces, searchTerm, sortBy, sortOrder]);
 
-  // const totalPages = Math.ceil(
-  //   (searchTerm ? displayedFaces.length : allFaces.length) / ITEMS_PER_PAGE
-  // );
+  // Update displayed faces when processed faces change
+  useEffect(() => {
+    const startIndex = 0;
+    const endIndex = currentPage * ITEMS_PER_PAGE;
+    const newDisplayed = processedFaces.slice(startIndex, endIndex);
+    setDisplayedFaces(newDisplayed);
+    setHasMoreFaces(endIndex < processedFaces.length);
+  }, [processedFaces, currentPage]);
 
-  // Recalculate total pages for pagination component based on current filtering.
-  // If a search term is active, total pages depend on the length of the filtered (but not yet paginated) list.
-  // This is a bit tricky because displayedFaces is already paginated.
-  // A better approach for totalPages when filtering:
-  const currentListForTotalPages = useMemo(() => {
-    let list = [...allFaces];
-    if (searchTerm) {
-      list = list.filter((face) =>
-        face.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    // Note: Sorting doesn't change the total number of items, so no need to apply it here for totalPages calculation.
-    return list;
-  }, [allFaces, searchTerm]);
+  // Infinite scroll handler
+  const loadMoreFaces = useCallback(() => {
+    if (isLoadingMore || !hasMoreFaces) return;
 
-  const totalPagesMemo = Math.ceil(
-    currentListForTotalPages.length / ITEMS_PER_PAGE
-  );
+    setIsLoadingMore(true);
+    
+    // Simulate loading delay
+    setTimeout(() => {
+      setCurrentPage(prev => prev + 1);
+      setIsLoadingMore(false);
+    }, 500);
+  }, [isLoadingMore, hasMoreFaces]);
+
+  // Scroll event listener
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop >=
+        document.documentElement.offsetHeight - 1000
+      ) {
+        loadMoreFaces();
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [loadMoreFaces]);
 
   // Event Handlers
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,66 +265,122 @@ export default function FacesPage() {
     setCurrentPage(1);
   };
 
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPagesMemo) {
-      setCurrentPage(page);
+  const handleFaceClick = async (face: Face) => {
+    if (!session) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to view larger images",
+        variant: "destructive",
+      });
+      router.push("/auth/signin");
+      return;
+    }
+
+    const userCredits = walletData?.myWallet?.credits || 0;
+    const hasAlreadyViewed = viewedFaces.has(face.id);
+
+    if (!hasAlreadyViewed && userCredits < 1) {
+      setShowCreditPrompt(true);
+      return;
+    }
+
+    setSelectedFace(face);
+  };
+
+  const handleImageView = async () => {
+    if (!selectedFace || !session) return;
+
+    const hasAlreadyViewed = viewedFaces.has(selectedFace.id);
+
+    try {
+      // Deduct credit if user hasn't viewed this face before
+      if (!hasAlreadyViewed) {
+        await deductCredits({
+          variables: {
+            amount: 1,
+            description: `Viewed larger image of ${selectedFace.name}`,
+          },
+        });
+
+        // Mark as viewed
+        setViewedFaces(prev => new Set([...prev, selectedFace.id]));
+      }
+
+      // Increment view count
+      await incrementFaceView({
+        variables: {
+          faceId: selectedFace.id,
+        },
+      });
+
+      // Update local state
+      setAllFaces(prev =>
+        prev.map(face =>
+          face.id === selectedFace.id
+            ? { ...face, views: face.views + 1 }
+            : face
+        )
+      );
+
+      toast({
+        title: "Image Viewed",
+        description: hasAlreadyViewed 
+          ? "Viewing larger image (no credit deducted)"
+          : "1 credit deducted for viewing larger image",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process image view",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleEnlargePicture = (imageUrl: string) => {
-    // For now, just log or alert. Modal implementation later.
-    alert(`Enlarging picture: ${imageUrl}`);
-    console.log("Enlarge picture:", imageUrl);
-  };
+  const handleLike = async (face: Face, event: React.MouseEvent) => {
+    event.stopPropagation();
 
-  const renderPaginationItems = () => {
-    const paginationItems = [];
-    const maxPagesToShow = 5; // Example: Show 5 page numbers at a time
-    const halfMaxPages = Math.floor(maxPagesToShow / 2);
-
-    let startPage = Math.max(1, currentPage - halfMaxPages);
-    let endPage = Math.min(totalPagesMemo, currentPage + halfMaxPages);
-
-    if (currentPage - halfMaxPages <= 1) {
-      endPage = Math.min(totalPagesMemo, maxPagesToShow);
-    }
-    if (currentPage + halfMaxPages >= totalPagesMemo) {
-      startPage = Math.max(1, totalPagesMemo - maxPagesToShow + 1);
+    if (!session) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to like faces",
+        variant: "destructive",
+      });
+      router.push("/auth/signin");
+      return;
     }
 
-    if (startPage > 1) {
-      paginationItems.push(
-        <PaginationItem key="start-ellipsis">
-          <PaginationEllipsis />
-        </PaginationItem>
+    try {
+      await toggleFaceLike({
+        variables: {
+          faceId: face.id,
+        },
+      });
+
+      // Update local state
+      setAllFaces(prev =>
+        prev.map(f =>
+          f.id === face.id
+            ? {
+                ...f,
+                likes: f.isLiked ? f.likes - 1 : f.likes + 1,
+                isLiked: !f.isLiked,
+              }
+            : f
+        )
       );
-    }
 
-    for (let i = startPage; i <= endPage; i++) {
-      paginationItems.push(
-        <PaginationItem key={i}>
-          <PaginationLink
-            href="#"
-            isActive={i === currentPage}
-            onClick={(e) => {
-              e.preventDefault();
-              handlePageChange(i);
-            }}
-          >
-            {i}
-          </PaginationLink>
-        </PaginationItem>
-      );
+      toast({
+        title: face.isLiked ? "Unliked" : "Liked",
+        description: `You ${face.isLiked ? "unliked" : "liked"} ${face.name}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update like status",
+        variant: "destructive",
+      });
     }
-
-    if (endPage < totalPagesMemo) {
-      paginationItems.push(
-        <PaginationItem key="end-ellipsis">
-          <PaginationEllipsis />
-        </PaginationItem>
-      );
-    }
-    return paginationItems;
   };
 
   return (
@@ -271,15 +400,6 @@ export default function FacesPage() {
             />
           </div>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:space-x-2">
-            {/* Filter Select - Placeholder for now */}
-            {/* <Select>
-              <SelectTrigger className="w-full sm:w-auto">
-                <SelectValue placeholder="Filter by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="filter1">Filter Option 1</SelectItem>
-              </SelectContent>
-            </Select> */}
             <Select value={sortBy} onValueChange={handleSortByChange}>
               <SelectTrigger className="w-full sm:w-auto">
                 <SelectValue placeholder="Sort by..." />
@@ -307,27 +427,26 @@ export default function FacesPage() {
         <section className="mb-8 md:mb-10">
           <h2 className="mb-4 text-xl font-semibold md:mb-6 md:text-2xl">
             {searchTerm ? `Results for "${searchTerm}"` : "Face Gallery"} (
-            {currentListForTotalPages.length} faces found)
+            {processedFaces.length} faces found)
           </h2>
           {displayedFaces.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
               {displayedFaces.map((face) => (
                 <Card
                   key={face.id}
-                  className="flex flex-col overflow-hidden shadow-lg transition-shadow duration-300 ease-in-out hover:shadow-xl dark:border-gray-700"
+                  className="flex flex-col overflow-hidden shadow-lg transition-shadow duration-300 ease-in-out hover:shadow-xl dark:border-gray-700 cursor-pointer"
+                  onClick={() => handleFaceClick(face)}
                 >
                   <CardHeader className="relative p-0">
                     <div className="aspect-square w-full overflow-hidden">
                       <Image
                         src={face.imageUrl}
                         alt={`Face of ${face.name}`}
-                        width={300} // Specify appropriate width
-                        height={300} // Specify appropriate height
+                        width={300}
+                        height={300}
                         className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-                        priority={false} // Set true for above-the-fold images
-                        unoptimized={face.imageUrl.startsWith(
-                          "https://picsum.photos"
-                        )} // only for picsum, remove for real images
+                        priority={false}
+                        unoptimized
                       />
                     </div>
                   </CardHeader>
@@ -342,17 +461,24 @@ export default function FacesPage() {
                       <p>Created: {face.createdAt.toLocaleDateString()}</p>
                     </div>
                     <div className="mt-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
-                      <span>Views: {face.views.toLocaleString()}</span>
-                      <span>Likes: {face.likes.toLocaleString()}</span>
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-3 w-3" />
+                        <span>{face.views.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" />
+                        <span>{face.likes.toLocaleString()}</span>
+                      </div>
                     </div>
                   </CardContent>
                   <CardFooter className="p-4 pt-2">
                     <Button
-                      variant="outline"
+                      variant={face.isLiked ? "default" : "outline"}
                       className="w-full"
-                      onClick={() => handleEnlargePicture(face.imageUrl)}
+                      onClick={(e) => handleLike(face, e)}
                     >
-                      Enlarge
+                      <Heart className={`h-4 w-4 mr-2 ${face.isLiked ? "fill-current" : ""}`} />
+                      {face.isLiked ? "Liked" : "Like"}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -363,45 +489,99 @@ export default function FacesPage() {
               No faces found matching your criteria.
             </p>
           )}
-        </section>
 
-        {/* Pagination Section */}
-        {totalPagesMemo > 1 && (
-          <footer className="mt-8 flex justify-center">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(currentPage - 1);
-                    }}
-                    className={
-                      currentPage === 1 ? "pointer-events-none opacity-50" : ""
-                    }
-                  />
-                </PaginationItem>
-                {renderPaginationItems()}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(currentPage + 1);
-                    }}
-                    className={
-                      currentPage === totalPagesMemo
-                        ? "pointer-events-none opacity-50"
-                        : ""
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </footer>
-        )}
+          {/* Loading indicator */}
+          {isLoadingMore && (
+            <div className="flex justify-center mt-8">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span>Loading more faces...</span>
+              </div>
+            </div>
+          )}
+
+          {/* End of results indicator */}
+          {!hasMoreFaces && displayedFaces.length > 0 && (
+            <div className="text-center mt-8">
+              <p className="text-muted-foreground">You've reached the end of the gallery!</p>
+            </div>
+          )}
+        </section>
       </main>
+
+      {/* Image View Dialog */}
+      <Dialog open={!!selectedFace} onOpenChange={() => setSelectedFace(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{selectedFace?.name}</DialogTitle>
+            <DialogDescription>
+              {viewedFaces.has(selectedFace?.id || "") 
+                ? "Viewing larger image (no credit will be deducted)"
+                : "Viewing this larger image will deduct 1 credit from your wallet"
+              }
+            </DialogDescription>
+          </DialogHeader>
+          {selectedFace && (
+            <div className="space-y-4">
+              <div className="aspect-square w-full overflow-hidden rounded-lg">
+                <Image
+                  src={selectedFace.imageUrl}
+                  alt={`Large view of ${selectedFace.name}`}
+                  width={600}
+                  height={600}
+                  className="object-cover w-full h-full"
+                  unoptimized
+                  onLoad={handleImageView}
+                />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1">
+                    <Eye className="h-4 w-4" />
+                    <span>{selectedFace.views.toLocaleString()} views</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Heart className="h-4 w-4" />
+                    <span>{selectedFace.likes.toLocaleString()} likes</span>
+                  </div>
+                </div>
+                <Button
+                  variant={selectedFace.isLiked ? "default" : "outline"}
+                  size="sm"
+                  onClick={(e) => handleLike(selectedFace, e)}
+                >
+                  <Heart className={`h-4 w-4 mr-2 ${selectedFace.isLiked ? "fill-current" : ""}`} />
+                  {selectedFace.isLiked ? "Liked" : "Like"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Credit Purchase Prompt Dialog */}
+      <Dialog open={showCreditPrompt} onOpenChange={setShowCreditPrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Insufficient Credits</DialogTitle>
+            <DialogDescription>
+              You need at least 1 credit to view larger images. Purchase credits to continue.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-4 justify-end">
+            <Button variant="outline" onClick={() => setShowCreditPrompt(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              setShowCreditPrompt(false);
+              router.push("/wallet");
+            }}>
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              Purchase Credits
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

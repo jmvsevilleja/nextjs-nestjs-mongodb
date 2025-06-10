@@ -74,6 +74,28 @@ export class WalletResolver {
     return result.transactions;
   }
 
+  @Mutation(() => Boolean)
+  async deductCredits(
+    @Args('amount', { type: () => Int }) amount: number,
+    @Args('description') description: string,
+    @CurrentUser() user: any,
+  ): Promise<{ success: boolean; newBalance: number }> {
+    this.logger.info('Processing deductCredits request', {
+      userId: user.id,
+      amount,
+      description,
+    });
+    
+    try {
+      await this.walletService.deductCredits(user.id, amount, description);
+      const wallet = await this.walletService.getWalletByUserId(user.id);
+      return { success: true, newBalance: wallet.credits };
+    } catch (error) {
+      this.logger.error('Failed to deduct credits', { error: error.message });
+      throw error;
+    }
+  }
+
   // Admin-only endpoints
   @UseGuards(AdminGuard)
   @Query(() => AdminTransactionConnection)

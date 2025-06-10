@@ -1,7 +1,9 @@
-import { Resolver, Query } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
 import { FacesService } from './faces.service';
 import { Face } from './models/face.model';
-// import { CreateFaceInput } from './dto/create-face.input'; // Keep for future mutation
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @Resolver(() => Face)
 export class FacesResolver {
@@ -12,11 +14,21 @@ export class FacesResolver {
     return this.facesService.findAll();
   }
 
-  // Placeholder for future createFace mutation
-  // @Mutation(() => Face, { name: 'createFace' })
-  // async createFace(
-  //   @Args('createFaceInput') createFaceInput: CreateFaceInput,
-  // ): Promise<Face> {
-  //   return this.facesService.create(createFaceInput);
-  // }
+  @UseGuards(JwtAuthGuard)
+  @Mutation(() => Face, { name: 'incrementFaceView' })
+  async incrementFaceView(
+    @Args('faceId', { type: () => ID }) faceId: string,
+    @CurrentUser() user: any,
+  ): Promise<Face> {
+    return this.facesService.incrementView(faceId, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Mutation(() => Face, { name: 'toggleFaceLike' })
+  async toggleFaceLike(
+    @Args('faceId', { type: () => ID }) faceId: string,
+    @CurrentUser() user: any,
+  ): Promise<Face> {
+    return this.facesService.toggleLike(faceId, user.id);
+  }
 }
