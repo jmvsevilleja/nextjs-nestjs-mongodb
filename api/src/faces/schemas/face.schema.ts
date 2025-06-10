@@ -1,10 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as MongooseSchema } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
+
+export type UserDocument = HydratedDocument<Face>;
 
 @Schema({ timestamps: true })
-export class FaceDocument extends Document {
-  @Prop({ type: MongooseSchema.Types.ObjectId, auto: true })
-  _id: MongooseSchema.Types.ObjectId;
+export class Face {
+  @Prop()
+  id: string;
 
   @Prop({ required: true })
   name: string;
@@ -19,10 +21,10 @@ export class FaceDocument extends Document {
   likes: number;
 }
 
-export const FaceSchema = SchemaFactory.createForClass(FaceDocument);
+export const FaceSchema = SchemaFactory.createForClass(Face);
 
 // For GraphQL compatibility, we can expose the Mongoose _id as id
-FaceSchema.virtual('id').get(function() {
+FaceSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
 

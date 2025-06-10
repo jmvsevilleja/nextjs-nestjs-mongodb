@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { Check, ListTodo } from "lucide-react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MainHeader } from "@/components/layout/main-header";
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <MainHeader />
+      {/* <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <ListTodo className="h-6 w-6" />
@@ -20,7 +22,7 @@ export default function Home() {
             </Link>
           </nav>
         </div>
-      </header>
+      </header> */}
       <main className="flex-1">
         <section className="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">
           <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
@@ -28,14 +30,19 @@ export default function Home() {
               Manage your tasks with ease
             </h1>
             <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-              A simple, efficient todo app to keep track of your daily tasks and boost your productivity.
+              A simple, efficient todo app to keep track of your daily tasks and
+              boost your productivity.
             </p>
             <div className="space-x-4">
               <Link href="/auth/signup">
-                <Button size="lg" className="px-8">Get Started</Button>
+                <Button size="lg" className="px-8">
+                  Get Started
+                </Button>
               </Link>
               <Link href="/auth/signin">
-                <Button size="lg" variant="outline" className="px-8">Sign In</Button>
+                <Button size="lg" variant="outline" className="px-8">
+                  Sign In
+                </Button>
               </Link>
             </div>
           </div>

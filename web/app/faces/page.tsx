@@ -3,10 +3,31 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image"; // For optimized images
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { MainHeader } from "@/components/layout/main-header";
 
 interface Face {
   id: string;
@@ -22,25 +43,51 @@ const ITEMS_PER_PAGE = 8;
 // Generate mock data
 const generateMockFaces = (count: number): Face[] => {
   const faces: Face[] = [];
-  const firstNames = ["Alice", "Bob", "Charlie", "Diana", "Edward", "Fiona", "George", "Hannah", "Ian", "Julia"];
-  const lastNames = ["Smith", "Jones", "Williams", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor", "Anderson"];
+  const firstNames = [
+    "Alice",
+    "Bob",
+    "Charlie",
+    "Diana",
+    "Edward",
+    "Fiona",
+    "George",
+    "Hannah",
+    "Ian",
+    "Julia",
+  ];
+  const lastNames = [
+    "Smith",
+    "Jones",
+    "Williams",
+    "Brown",
+    "Davis",
+    "Miller",
+    "Wilson",
+    "Moore",
+    "Taylor",
+    "Anderson",
+  ];
 
   for (let i = 1; i <= count; i++) {
-    const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-    const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const randomFirstName =
+      firstNames[Math.floor(Math.random() * firstNames.length)];
+    const randomLastName =
+      lastNames[Math.floor(Math.random() * lastNames.length)];
     faces.push({
       id: `mock-${i}`,
       name: `${randomFirstName} ${randomLastName} ${i}`,
       // Using picsum.photos for diverse placeholder images
-      imageUrl: `https://picsum.photos/seed/${i + 100}/300/300`,
+      //imageUrl: `https://picsum.photos/seed/${i + 100}/300/300`,
+      imageUrl: `https://i.pravatar.cc/300?u=${i + 100}`,
       views: Math.floor(Math.random() * 10000),
       likes: Math.floor(Math.random() * 5000),
-      createdAt: new Date(Date.now() - Math.floor(Math.random() * 1000 * 60 * 60 * 24 * 365)), // Random date in last year
+      createdAt: new Date(
+        Date.now() - Math.floor(Math.random() * 1000 * 60 * 60 * 24 * 365)
+      ), // Random date in last year
     });
   }
   return faces;
 };
-
 
 export default function FacesPage() {
   const [allFaces, setAllFaces] = useState<Face[]>([]);
@@ -65,7 +112,7 @@ export default function FacesPage() {
 
     // 1. Filtering
     if (searchTerm) {
-      processedFaces = processedFaces.filter(face =>
+      processedFaces = processedFaces.filter((face) =>
         face.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -88,7 +135,8 @@ export default function FacesPage() {
         } else if (sortBy === "createdAt") {
           valA = a.createdAt.getTime();
           valB = b.createdAt.getTime();
-        } else { // default to createdAt if sortBy is unrecognized
+        } else {
+          // default to createdAt if sortBy is unrecognized
           valA = a.createdAt.getTime();
           valB = b.createdAt.getTime();
         }
@@ -103,13 +151,11 @@ export default function FacesPage() {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     setDisplayedFaces(processedFaces.slice(startIndex, endIndex));
-
   }, [allFaces, searchTerm, sortBy, sortOrder, currentPage]);
-
 
   const totalPages = Math.ceil(
     (searchTerm ? displayedFaces.length : allFaces.length) / ITEMS_PER_PAGE
-   );
+  );
 
   // Recalculate total pages for pagination component based on current filtering.
   // If a search term is active, total pages depend on the length of the filtered (but not yet paginated) list.
@@ -118,7 +164,7 @@ export default function FacesPage() {
   const currentListForTotalPages = useMemo(() => {
     let list = [...allFaces];
     if (searchTerm) {
-      list = list.filter(face =>
+      list = list.filter((face) =>
         face.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -126,8 +172,9 @@ export default function FacesPage() {
     return list;
   }, [allFaces, searchTerm]);
 
-  const totalPagesMemo = Math.ceil(currentListForTotalPages.length / ITEMS_PER_PAGE);
-
+  const totalPagesMemo = Math.ceil(
+    currentListForTotalPages.length / ITEMS_PER_PAGE
+  );
 
   // Event Handlers
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,7 +219,6 @@ export default function FacesPage() {
       startPage = Math.max(1, totalPagesMemo - maxPagesToShow + 1);
     }
 
-
     if (startPage > 1) {
       paginationItems.push(
         <PaginationItem key="start-ellipsis">
@@ -184,7 +230,14 @@ export default function FacesPage() {
     for (let i = startPage; i <= endPage; i++) {
       paginationItems.push(
         <PaginationItem key={i}>
-          <PaginationLink href="#" isActive={i === currentPage} onClick={(e) => {e.preventDefault(); handlePageChange(i)}}>
+          <PaginationLink
+            href="#"
+            isActive={i === currentPage}
+            onClick={(e) => {
+              e.preventDefault();
+              handlePageChange(i);
+            }}
+          >
             {i}
           </PaginationLink>
         </PaginationItem>
@@ -201,14 +254,11 @@ export default function FacesPage() {
     return paginationItems;
   };
 
-
   return (
-    <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
-      <header className="mb-6 md:mb-8">
-        <h1 className="text-3xl font-bold md:text-4xl">Faces</h1>
-      </header>
+    <div className="flex min-h-screen flex-col">
+      <MainHeader />
 
-      <main>
+      <main className="container flex-1 py-8 space-y-8">
         {/* Search and Filter Section */}
         <div className="mb-6 flex flex-col gap-4 md:mb-8 md:flex-row md:items-center md:justify-between">
           <div className="flex-grow md:max-w-xs">
@@ -256,27 +306,38 @@ export default function FacesPage() {
         {/* Face Card Grid Section */}
         <section className="mb-8 md:mb-10">
           <h2 className="mb-4 text-xl font-semibold md:mb-6 md:text-2xl">
-            {searchTerm ? `Results for "${searchTerm}"` : "Face Gallery"} ({currentListForTotalPages.length} faces found)
+            {searchTerm ? `Results for "${searchTerm}"` : "Face Gallery"} (
+            {currentListForTotalPages.length} faces found)
           </h2>
           {displayedFaces.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
               {displayedFaces.map((face) => (
-                <Card key={face.id} className="flex flex-col overflow-hidden shadow-lg transition-shadow duration-300 ease-in-out hover:shadow-xl dark:border-gray-700">
+                <Card
+                  key={face.id}
+                  className="flex flex-col overflow-hidden shadow-lg transition-shadow duration-300 ease-in-out hover:shadow-xl dark:border-gray-700"
+                >
                   <CardHeader className="relative p-0">
                     <div className="aspect-square w-full overflow-hidden">
-                       <Image
+                      <Image
                         src={face.imageUrl}
                         alt={`Face of ${face.name}`}
                         width={300} // Specify appropriate width
                         height={300} // Specify appropriate height
                         className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
                         priority={false} // Set true for above-the-fold images
-                        unoptimized={face.imageUrl.startsWith('https://picsum.photos')} // only for picsum, remove for real images
+                        unoptimized={face.imageUrl.startsWith(
+                          "https://picsum.photos"
+                        )} // only for picsum, remove for real images
                       />
                     </div>
                   </CardHeader>
                   <CardContent className="flex-grow p-4">
-                    <CardTitle className="mb-1 text-lg font-semibold line-clamp-1" title={face.name}>{face.name}</CardTitle>
+                    <CardTitle
+                      className="mb-1 text-lg font-semibold line-clamp-1"
+                      title={face.name}
+                    >
+                      {face.name}
+                    </CardTitle>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
                       <p>Created: {face.createdAt.toLocaleDateString()}</p>
                     </div>
@@ -312,16 +373,28 @@ export default function FacesPage() {
                 <PaginationItem>
                   <PaginationPrevious
                     href="#"
-                    onClick={(e) => {e.preventDefault(); handlePageChange(currentPage - 1)}}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(currentPage - 1);
+                    }}
+                    className={
+                      currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                    }
                   />
                 </PaginationItem>
                 {renderPaginationItems()}
                 <PaginationItem>
                   <PaginationNext
                     href="#"
-                    onClick={(e) => {e.preventDefault(); handlePageChange(currentPage + 1)}}
-                    className={currentPage === totalPagesMemo ? "pointer-events-none opacity-50" : ""}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(currentPage + 1);
+                    }}
+                    className={
+                      currentPage === totalPagesMemo
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
                   />
                 </PaginationItem>
               </PaginationContent>
