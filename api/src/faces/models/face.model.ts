@@ -25,4 +25,10 @@ export class Face {
 
   @Field({ nullable: true })
   isLiked?: boolean;
+
+  @Field({ nullable: true })
+  isViewed?: boolean;
+
+  @Field()
+  userId: string;
 }

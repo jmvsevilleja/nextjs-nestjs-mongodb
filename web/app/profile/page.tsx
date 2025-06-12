@@ -8,7 +8,7 @@ import { gql } from "@apollo/client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ListTodo, LogOut, Camera, User } from "lucide-react";
+import { Camera, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,11 +28,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { signOut } from "next-auth/react";
-import { WalletDisplay } from "@/components/wallet/wallet-display";
 import { useToast } from "@/hooks/use-toast";
-import { Navigation } from "@/components/navigation";
+import { MainHeader } from "@/components/layout/main-header";
 
 const GET_USER_PROFILE = gql`
   query GetUserProfile {
@@ -195,28 +192,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ListTodo className="h-6 w-6" />
-            <span className="font-semibold">Todo App</span>
-          </div>
-
-          <Navigation />
-
-          <div className="flex items-center gap-4">
-            <WalletDisplay />
-            <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => signOut({ callbackUrl: "/" })}
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <MainHeader />
 
       <main className="container flex-1 py-8">
         <div className="mx-auto max-w-2xl space-y-8">

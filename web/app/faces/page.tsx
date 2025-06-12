@@ -14,13 +14,6 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -32,15 +25,23 @@ import { Heart, Eye, Loader2, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { FacesList } from "../../components/faces/faces-list";
 
+// Update GraphQL query to include pagination and sorting parameters
 const GET_ALL_FACES = gql`
-  query GetAllFaces {
-    allFaces {
+  query GetAllFaces(
+    $input: AllFacesInput! # Changed to use the AllFacesInput DTO
+  ) {
+    allFaces(
+      input: $input # Pass the entire input object
+    ) {
       id
       name
       imageUrl
       views
       likes
+      isLiked
+      isViewed
       createdAt
       updatedAt
     }
@@ -84,7 +85,7 @@ const DEDUCT_CREDITS = gql`
   }
 `;
 
-interface Face {
+export interface Face {
   id: string;
   name: string;
   imageUrl: string;
@@ -92,41 +93,8 @@ interface Face {
   likes: number;
   createdAt: Date;
   isLiked?: boolean;
+  isViewed?: boolean;
 }
-
-const ITEMS_PER_PAGE = 8;
-
-// Generate mock data
-const generateMockFaces = (count: number): Face[] => {
-  const faces: Face[] = [];
-  const firstNames = [
-    "Alice", "Bob", "Charlie", "Diana", "Edward", "Fiona", "George", "Hannah", 
-    "Ian", "Julia", "Kevin", "Luna", "Marcus", "Nina", "Oscar", "Petra", 
-    "Quinn", "Rosa", "Sam", "Tara", "Uma", "Victor", "Wendy", "Xander", "Yara", "Zoe"
-  ];
-  const lastNames = [
-    "Smith", "Jones", "Williams", "Brown", "Davis", "Miller", "Wilson", "Moore", 
-    "Taylor", "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin", "Thompson",
-    "Garcia", "Martinez", "Robinson", "Clark", "Rodriguez", "Lewis", "Lee", "Walker"
-  ];
-
-  for (let i = 1; i <= count; i++) {
-    const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-    const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    faces.push({
-      id: `mock-${i}`,
-      name: `${randomFirstName} ${randomLastName} ${i}`,
-      imageUrl: `https://i.pravatar.cc/300?u=${i + 100}`,
-      views: Math.floor(Math.random() * 10000),
-      likes: Math.floor(Math.random() * 5000),
-      createdAt: new Date(
-        Date.now() - Math.floor(Math.random() * 1000 * 60 * 60 * 24 * 365)
-      ),
-      isLiked: Math.random() > 0.7, // Random like status
-    });
-  }
-  return faces;
-};
 
 export default function FacesPage() {
   const { data: session } = useSession();
@@ -134,16 +102,8 @@ export default function FacesPage() {
   const { toast } = useToast();
 
   // State for faces and UI
-  const [allFaces, setAllFaces] = useState<Face[]>([]);
-  const [displayedFaces, setDisplayedFaces] = useState<Face[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMoreFaces, setHasMoreFaces] = useState(true);
-
-  // State for UI controls
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [sortOrder, setSortOrder] = useState("desc");
 
   // State for image viewing
   const [selectedFace, setSelectedFace] = useState<Face | null>(null);
@@ -155,6 +115,76 @@ export default function FacesPage() {
     skip: !session,
   });
 
+  // State for pagination and filtering
+  const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"createdAt" | "views" | "likes">(
+    "views"
+  );
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [allFaces, setAllFaces] = useState<Face[]>([]);
+  const [displayedFaces, setDisplayedFaces] = useState<Face[]>([]);
+  const [hasMoreFaces, setHasMoreFaces] = useState(true);
+
+  // Fetch faces with pagination
+  const { data, loading, error, fetchMore } = useQuery(GET_ALL_FACES, {
+    variables: {
+      input: {
+        page,
+        limit: 20,
+        searchTerm,
+        sortBy,
+        sortOrder,
+        userId: session?.user?.id,
+      },
+    },
+    onCompleted: (data) => {
+      if (data.allFaces.length === 0) {
+        setHasMoreFaces(false);
+        return;
+      }
+
+      if (page === 1) {
+        setAllFaces(data.allFaces);
+        setDisplayedFaces(data.allFaces);
+      } else {
+        setAllFaces((prev) => [...prev, ...data.allFaces]);
+        setDisplayedFaces((prev) => [...prev, ...data.allFaces]);
+      }
+    },
+  });
+
+  // Handle loading more faces
+  const loadMoreFaces = () => {
+    if (!loading && hasMoreFaces) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  // Implement search and filter logic
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = allFaces.filter((face) =>
+        face.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setDisplayedFaces(filtered);
+    } else {
+      setDisplayedFaces(allFaces);
+    }
+  }, [searchTerm, allFaces]);
+
+  // Implement sorting logic
+  useEffect(() => {
+    const sorted = [...displayedFaces].sort((a, b) => {
+      if (sortOrder === "asc") {
+        return a[sortBy] > b[sortBy] ? 1 : -1;
+      } else {
+        return a[sortBy] < b[sortBy] ? 1 : -1;
+      }
+    });
+    setDisplayedFaces(sorted);
+  }, [sortBy, sortOrder]);
+
   const [incrementFaceView] = useMutation(INCREMENT_FACE_VIEW);
   const [toggleFaceLike] = useMutation(TOGGLE_FACE_LIKE);
   const [deductCredits] = useMutation(DEDUCT_CREDITS, {
@@ -162,77 +192,6 @@ export default function FacesPage() {
       refetchWallet();
     },
   });
-
-  // Initial data loading
-  useEffect(() => {
-    const mockData = generateMockFaces(50); // Generate 50 mock faces
-    setAllFaces(mockData);
-  }, []);
-
-  // Processing logic: filtering, sorting
-  const processedFaces = useMemo(() => {
-    let filtered = [...allFaces];
-
-    // 1. Filtering
-    if (searchTerm) {
-      filtered = filtered.filter((face) =>
-        face.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // 2. Sorting
-    if (sortBy) {
-      filtered.sort((a, b) => {
-        let valA: number | string | Date;
-        let valB: number | string | Date;
-
-        if (sortBy === "name") {
-          valA = a.name.toLowerCase();
-          valB = b.name.toLowerCase();
-        } else if (sortBy === "views") {
-          valA = a.views;
-          valB = b.views;
-        } else if (sortBy === "likes") {
-          valA = a.likes;
-          valB = b.likes;
-        } else if (sortBy === "createdAt") {
-          valA = a.createdAt.getTime();
-          valB = b.createdAt.getTime();
-        } else {
-          valA = a.createdAt.getTime();
-          valB = b.createdAt.getTime();
-        }
-
-        if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-        if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [allFaces, searchTerm, sortBy, sortOrder]);
-
-  // Update displayed faces when processed faces change
-  useEffect(() => {
-    const startIndex = 0;
-    const endIndex = currentPage * ITEMS_PER_PAGE;
-    const newDisplayed = processedFaces.slice(startIndex, endIndex);
-    setDisplayedFaces(newDisplayed);
-    setHasMoreFaces(endIndex < processedFaces.length);
-  }, [processedFaces, currentPage]);
-
-  // Infinite scroll handler
-  const loadMoreFaces = useCallback(() => {
-    if (isLoadingMore || !hasMoreFaces) return;
-
-    setIsLoadingMore(true);
-    
-    // Simulate loading delay
-    setTimeout(() => {
-      setCurrentPage(prev => prev + 1);
-      setIsLoadingMore(false);
-    }, 500);
-  }, [isLoadingMore, hasMoreFaces]);
 
   // Scroll event listener
   useEffect(() => {
@@ -255,13 +214,11 @@ export default function FacesPage() {
     setCurrentPage(1); // Reset to first page on new search
   };
 
-  const handleSortByChange = (value: string) => {
+  const handleSortByChange = (value: "createdAt" | "views" | "likes") => {
+    // if (value === "createdAt") {
+    //   setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    // }
     setSortBy(value);
-    setCurrentPage(1);
-  };
-
-  const handleSortOrderChange = (value: string) => {
-    setSortOrder(value);
     setCurrentPage(1);
   };
 
@@ -289,8 +246,7 @@ export default function FacesPage() {
 
   const handleImageView = async () => {
     if (!selectedFace || !session) return;
-
-    const hasAlreadyViewed = viewedFaces.has(selectedFace.id);
+    const hasAlreadyViewed = selectedFace.isViewed;
 
     try {
       // Deduct credit if user hasn't viewed this face before
@@ -302,29 +258,26 @@ export default function FacesPage() {
           },
         });
 
-        // Mark as viewed
-        setViewedFaces(prev => new Set([...prev, selectedFace.id]));
+        // Increment view count
+        await incrementFaceView({
+          variables: {
+            faceId: selectedFace.id,
+          },
+        });
+
+        // Update local state
+        setAllFaces((prev) =>
+          prev.map((face) =>
+            face.id === selectedFace.id
+              ? { ...face, views: face.views + 1, isViewed: true }
+              : face
+          )
+        );
       }
-
-      // Increment view count
-      await incrementFaceView({
-        variables: {
-          faceId: selectedFace.id,
-        },
-      });
-
-      // Update local state
-      setAllFaces(prev =>
-        prev.map(face =>
-          face.id === selectedFace.id
-            ? { ...face, views: face.views + 1 }
-            : face
-        )
-      );
 
       toast({
         title: "Image Viewed",
-        description: hasAlreadyViewed 
+        description: hasAlreadyViewed
           ? "Viewing larger image (no credit deducted)"
           : "1 credit deducted for viewing larger image",
       });
@@ -358,8 +311,8 @@ export default function FacesPage() {
       });
 
       // Update local state
-      setAllFaces(prev =>
-        prev.map(f =>
+      setAllFaces((prev) =>
+        prev.map((f) =>
           f.id === face.id
             ? {
                 ...f,
@@ -383,12 +336,21 @@ export default function FacesPage() {
     }
   };
 
+  const getButtonClass = (value: "createdAt" | "views" | "likes") => {
+    return `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+      sortBy === value
+        ? "bg-primary text-primary-foreground"
+        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+    }`;
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <MainHeader />
 
       <main className="container flex-1 py-8 space-y-8">
         {/* Search and Filter Section */}
+
         <div className="mb-6 flex flex-col gap-4 md:mb-8 md:flex-row md:items-center md:justify-between">
           <div className="flex-grow md:max-w-xs">
             <Input
@@ -399,114 +361,39 @@ export default function FacesPage() {
               onChange={handleSearchChange}
             />
           </div>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:space-x-2">
-            <Select value={sortBy} onValueChange={handleSortByChange}>
-              <SelectTrigger className="w-full sm:w-auto">
-                <SelectValue placeholder="Sort by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="views">Views</SelectItem>
-                <SelectItem value="likes">Likes</SelectItem>
-                <SelectItem value="createdAt">Date Created</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sortOrder} onValueChange={handleSortOrderChange}>
-              <SelectTrigger className="w-full sm:w-auto">
-                <SelectValue placeholder="Order by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="asc">Ascending</SelectItem>
-                <SelectItem value="desc">Descending</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Button
+              onClick={() => handleSortByChange("views")}
+              className={getButtonClass("views")}
+            >
+              Most Viewed
+            </Button>
+            <Button
+              onClick={() => handleSortByChange("likes")}
+              className={getButtonClass("likes")}
+            >
+              Most Liked
+            </Button>
+            <Button
+              onClick={() => handleSortByChange("createdAt")}
+              className={getButtonClass("createdAt")}
+            >
+              Latest
+            </Button>
           </div>
         </div>
 
-        {/* Face Card Grid Section */}
-        <section className="mb-8 md:mb-10">
-          <h2 className="mb-4 text-xl font-semibold md:mb-6 md:text-2xl">
-            {searchTerm ? `Results for "${searchTerm}"` : "Face Gallery"} (
-            {processedFaces.length} faces found)
-          </h2>
-          {displayedFaces.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
-              {displayedFaces.map((face) => (
-                <Card
-                  key={face.id}
-                  className="flex flex-col overflow-hidden shadow-lg transition-shadow duration-300 ease-in-out hover:shadow-xl dark:border-gray-700 cursor-pointer"
-                  onClick={() => handleFaceClick(face)}
-                >
-                  <CardHeader className="relative p-0">
-                    <div className="aspect-square w-full overflow-hidden">
-                      <Image
-                        src={face.imageUrl}
-                        alt={`Face of ${face.name}`}
-                        width={300}
-                        height={300}
-                        className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-                        priority={false}
-                        unoptimized
-                      />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-grow p-4">
-                    <CardTitle
-                      className="mb-1 text-lg font-semibold line-clamp-1"
-                      title={face.name}
-                    >
-                      {face.name}
-                    </CardTitle>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      <p>Created: {face.createdAt.toLocaleDateString()}</p>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        <span>{face.views.toLocaleString()}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Heart className="h-3 w-3" />
-                        <span>{face.likes.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="p-4 pt-2">
-                    <Button
-                      variant={face.isLiked ? "default" : "outline"}
-                      className="w-full"
-                      onClick={(e) => handleLike(face, e)}
-                    >
-                      <Heart className={`h-4 w-4 mr-2 ${face.isLiked ? "fill-current" : ""}`} />
-                      {face.isLiked ? "Liked" : "Like"}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-gray-500 dark:text-gray-400">
-              No faces found matching your criteria.
-            </p>
-          )}
+        {/* Faces List */}
+        <FacesList
+          displayedFaces={displayedFaces}
+          searchTerm={searchTerm}
+          isLoadingMore={isLoadingMore}
+          hasMoreFaces={hasMoreFaces}
+          handleFaceClick={handleFaceClick}
+          handleLike={handleLike}
+        />
 
-          {/* Loading indicator */}
-          {isLoadingMore && (
-            <div className="flex justify-center mt-8">
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                <span>Loading more faces...</span>
-              </div>
-            </div>
-          )}
-
-          {/* End of results indicator */}
-          {!hasMoreFaces && displayedFaces.length > 0 && (
-            <div className="text-center mt-8">
-              <p className="text-muted-foreground">You've reached the end of the gallery!</p>
-            </div>
-          )}
-        </section>
+        {/* Loading More Indicator */}
       </main>
 
       {/* Image View Dialog */}
@@ -515,10 +402,9 @@ export default function FacesPage() {
           <DialogHeader>
             <DialogTitle>{selectedFace?.name}</DialogTitle>
             <DialogDescription>
-              {viewedFaces.has(selectedFace?.id || "") 
+              {viewedFaces.has(selectedFace?.id || "")
                 ? "Viewing larger image (no credit will be deducted)"
-                : "Viewing this larger image will deduct 1 credit from your wallet"
-              }
+                : "Viewing this larger image will deduct 1 credit from your wallet"}
             </DialogDescription>
           </DialogHeader>
           {selectedFace && (
@@ -550,7 +436,11 @@ export default function FacesPage() {
                   size="sm"
                   onClick={(e) => handleLike(selectedFace, e)}
                 >
-                  <Heart className={`h-4 w-4 mr-2 ${selectedFace.isLiked ? "fill-current" : ""}`} />
+                  <Heart
+                    className={`h-4 w-4 mr-2 ${
+                      selectedFace.isLiked ? "fill-current" : ""
+                    }`}
+                  />
                   {selectedFace.isLiked ? "Liked" : "Like"}
                 </Button>
               </div>
@@ -565,17 +455,23 @@ export default function FacesPage() {
           <DialogHeader>
             <DialogTitle>Insufficient Credits</DialogTitle>
             <DialogDescription>
-              You need at least 1 credit to view larger images. Purchase credits to continue.
+              You need at least 1 credit to view larger images. Purchase credits
+              to continue.
             </DialogDescription>
           </DialogHeader>
           <div className="flex gap-4 justify-end">
-            <Button variant="outline" onClick={() => setShowCreditPrompt(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowCreditPrompt(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={() => {
-              setShowCreditPrompt(false);
-              router.push("/wallet");
-            }}>
+            <Button
+              onClick={() => {
+                setShowCreditPrompt(false);
+                router.push("/wallet");
+              }}
+            >
               <ShoppingCart className="h-4 w-4 mr-2" />
               Purchase Credits
             </Button>

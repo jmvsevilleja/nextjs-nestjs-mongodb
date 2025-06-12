@@ -4,7 +4,11 @@ import { WalletService } from './wallet.service';
 import { Wallet } from './models/wallet.model';
 import { Transaction } from './models/transaction.model';
 import { PaymentPackage, PaymentIntent } from './models/payment-package.model';
-import { AdminTransaction, AdminTransactionConnection, TransactionStats } from './models/admin-transaction.model';
+import {
+  AdminTransaction,
+  AdminTransactionConnection,
+  TransactionStats,
+} from './models/admin-transaction.model';
 import { CreatePaymentIntentInput } from './dto/create-payment-intent.input';
 import { ConfirmPaymentInput } from './dto/confirm-payment.input';
 import { ProcessTransactionInput } from './dto/process-transaction.input';
@@ -13,6 +17,7 @@ import { AdminGuard } from '../auth/guards/admin.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { DeductCreditsResponse } from './dto/deduct-credits.response';
 
 @Resolver(() => Wallet)
 @UseGuards(JwtAuthGuard)
@@ -62,19 +67,25 @@ export class WalletResolver {
   @Query(() => [Transaction])
   async transactionHistory(
     @CurrentUser() user: any,
-    @Args('limit', { type: () => Int, nullable: true, defaultValue: 10 }) limit: number,
-    @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 }) offset: number,
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 10 })
+    limit: number,
+    @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 })
+    offset: number,
   ) {
     this.logger.info('Processing transactionHistory request', {
       userId: user.id,
       limit,
       offset,
     });
-    const result = await this.walletService.getTransactionHistory(user.id, limit, offset);
+    const result = await this.walletService.getTransactionHistory(
+      user.id,
+      limit,
+      offset,
+    );
     return result.transactions;
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => DeductCreditsResponse)
   async deductCredits(
     @Args('amount', { type: () => Int }) amount: number,
     @Args('description') description: string,
@@ -85,7 +96,7 @@ export class WalletResolver {
       amount,
       description,
     });
-    
+
     try {
       await this.walletService.deductCredits(user.id, amount, description);
       const wallet = await this.walletService.getWalletByUserId(user.id);
@@ -100,11 +111,17 @@ export class WalletResolver {
   @UseGuards(AdminGuard)
   @Query(() => AdminTransactionConnection)
   async adminTransactions(
-    @Args('limit', { type: () => Int, nullable: true, defaultValue: 20 }) limit: number,
-    @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 }) offset: number,
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 20 })
+    limit: number,
+    @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 })
+    offset: number,
     @Args('status', { nullable: true }) status?: string,
   ): Promise<AdminTransactionConnection> {
-    this.logger.info('Processing adminTransactions request', { limit, offset, status });
+    this.logger.info('Processing adminTransactions request', {
+      limit,
+      offset,
+      status,
+    });
     return this.walletService.getAdminTransactions(limit, offset, status);
   }
 

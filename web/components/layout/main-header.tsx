@@ -17,7 +17,7 @@ export function MainHeader() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <ListTodo className="h-6 w-6" />
-          <span className="font-semibold">Todo App</span>
+          <span className="font-semibold">Face App</span>
         </div>
 
         <Navigation />

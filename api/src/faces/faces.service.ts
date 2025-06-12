@@ -1,135 +1,157 @@
-import { Injectable } from '@nestjs/common';
-import { Face } from './models/face.model';
-import { v4 as uuidv4 } from 'uuid';
-
-interface FaceInteraction {
-  userId: string;
-  faceId: string;
-  hasViewed: boolean;
-  hasLiked: boolean;
-}
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Face, FaceDocument } from './schemas/face.schema';
+import { Model, Types } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import {
+  FaceInteraction,
+  FaceInteractionDocument,
+} from './schemas/face-interaction.schema';
 
 @Injectable()
 export class FacesService {
-  private mockFaces: Face[] = [
-    {
-      id: uuidv4(),
-      name: 'Alice Wonderland',
-      imageUrl: 'https://i.pravatar.cc/300?u=101',
-      views: 150,
-      likes: 75,
-      createdAt: new Date('2024-01-15T10:30:00Z'),
-      updatedAt: new Date('2024-01-16T11:00:00Z'),
-    },
-    {
-      id: uuidv4(),
-      name: 'Bob The Builder',
-      imageUrl: 'https://i.pravatar.cc/300?u=102',
-      views: 2500,
-      likes: 1200,
-      createdAt: new Date('2024-02-20T08:00:00Z'),
-      updatedAt: new Date('2024-02-21T09:30:00Z'),
-    },
-    {
-      id: uuidv4(),
-      name: 'Charlie Chaplin',
-      imageUrl: 'https://i.pravatar.cc/300?u=103',
-      views: 5000,
-      likes: 2500,
-      createdAt: new Date('2023-12-10T14:15:00Z'),
-      updatedAt: new Date('2023-12-12T16:00:00Z'),
-    },
-    {
-      id: uuidv4(),
-      name: 'Diana Prince',
-      imageUrl: 'https://i.pravatar.cc/300?u=104',
-      views: 800,
-      likes: 400,
-      createdAt: new Date('2024-03-01T12:00:00Z'),
-      updatedAt: new Date('2024-03-01T18:45:00Z'),
-    },
-  ];
+  constructor(
+    @InjectModel(Face.name) private faceModel: Model<FaceDocument>,
+    @InjectModel(FaceInteraction.name)
+    private faceInteractionModel: Model<FaceInteractionDocument>,
+  ) {}
 
-  // In-memory storage for user interactions (in production, use database)
-  private userInteractions: FaceInteraction[] = [];
-
-  async findAll(): Promise<Face[]> {
-    return this.mockFaces;
-  }
-
-  async incrementView(faceId: string, userId: string): Promise<Face> {
-    const face = this.mockFaces.find(f => f.id === faceId);
-    if (!face) {
-      throw new Error('Face not found');
+  async findAll(
+    page: number,
+    limit: number,
+    searchTerm?: string,
+    sortBy?: string,
+    sortOrder?: string,
+    userId?: string,
+  ): Promise<Face[]> {
+    const query: any = {};
+    if (searchTerm) {
+      query.name = { $regex: searchTerm, $options: 'i' };
     }
 
-    // Check if user has already viewed this face
-    let interaction = this.userInteractions.find(
-      i => i.userId === userId && i.faceId === faceId
+    const sort: any = {};
+    if (sortBy) {
+      sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    }
+
+    const faces = await this.faceModel
+      .find(query)
+      .sort(sort)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    if (!userId) {
+      return faces.map((face) => this.faceModel.hydrate(face).toJSON());
+    }
+
+    // Get user interactions for all faces
+    const interactions = await this.faceInteractionModel
+      .find({
+        userId: new Types.ObjectId(userId),
+        faceId: { $in: faces.map((face) => face._id) },
+      })
+      .exec();
+
+    // Create a map of interactions for quick lookup
+    const interactionMap = new Map(
+      interactions.map((interaction) => [
+        interaction.faceId.toString(),
+        interaction,
+      ]),
     );
 
-    if (!interaction) {
-      // Create new interaction record
-      interaction = {
-        userId,
-        faceId,
-        hasViewed: false,
-        hasLiked: false,
+    // Add interaction data to each face
+    return faces.map((face) => {
+      const faceObj = this.faceModel.hydrate(face).toJSON();
+      const interaction = interactionMap.get(face._id.toString());
+      return {
+        ...faceObj,
+        isLiked: interaction?.hasLiked || false,
+        isViewed: interaction?.hasViewed || false,
       };
-      this.userInteractions.push(interaction);
-    }
-
-    // Only increment view count once per user
-    if (!interaction.hasViewed) {
-      face.views += 1;
-      interaction.hasViewed = true;
-      face.updatedAt = new Date();
-    }
-
-    return face;
+    });
   }
 
-  async toggleLike(faceId: string, userId: string): Promise<Face & { isLiked: boolean }> {
-    const face = this.mockFaces.find(f => f.id === faceId);
+  async incrementView(faceId: string, userId: string): Promise<Face | null> {
+    const face = await this.faceModel.findById(faceId).exec();
     if (!face) {
-      throw new Error('Face not found');
+      throw new NotFoundException(`Face with ID ${faceId} not found`);
     }
 
-    // Find or create user interaction
-    let interaction = this.userInteractions.find(
-      i => i.userId === userId && i.faceId === faceId
+    // Check if the user has already viewed this face
+    const interaction = await this.faceInteractionModel.findOne({
+      userId: new Types.ObjectId(userId),
+      faceId: new Types.ObjectId(faceId),
+    });
+
+    console.log(
+      'interaction',
+      interaction,
+      !interaction || !interaction.hasViewed,
     );
-
-    if (!interaction) {
-      interaction = {
-        userId,
-        faceId,
-        hasViewed: false,
-        hasLiked: false,
-      };
-      this.userInteractions.push(interaction);
+    if (!interaction || !interaction.hasViewed) {
+      // Increment view count only if not viewed by this user before
+      await this.faceModel
+        .findByIdAndUpdate(faceId, { $inc: { views: 1 } })
+        .exec();
+      // Record the view interaction
+      if (interaction) {
+        interaction.hasViewed = true;
+        await interaction.save();
+      } else {
+        await this.faceInteractionModel.create({
+          userId,
+          faceId,
+          hasViewed: true,
+          hasLiked: false,
+        });
+      }
     }
 
-    // Toggle like status
-    if (interaction.hasLiked) {
-      face.likes -= 1;
-      interaction.hasLiked = false;
+    const viewedFace = await this.faceModel.findById(faceId).exec();
+    return viewedFace ? viewedFace.toJSON() : null;
+  }
+
+  async toggleLike(faceId: string, userId: string): Promise<Face | null> {
+    const face = await this.faceModel.findById(faceId).exec();
+    if (!face) {
+      throw new NotFoundException(`Face with ID ${faceId} not found`);
+    }
+
+    let interaction = await this.faceInteractionModel.findOne({
+      userId: new Types.ObjectId(userId),
+      faceId: new Types.ObjectId(faceId),
+    });
+
+    if (interaction) {
+      interaction.hasLiked = !interaction.hasLiked;
+      await interaction.save();
     } else {
-      face.likes += 1;
-      interaction.hasLiked = true;
+      interaction = await this.faceInteractionModel.create({
+        userId,
+        faceId,
+        hasViewed: false,
+        hasLiked: true,
+      });
     }
 
-    face.updatedAt = new Date();
+    // Update like count based on the new state
+    const likeChange = interaction.hasLiked ? 1 : -1;
+    await this.faceModel
+      .findByIdAndUpdate(faceId, { $inc: { likes: likeChange } })
+      .exec();
 
-    return {
-      ...face,
-      isLiked: interaction.hasLiked,
-    };
+    const likedFace = await this.faceModel.findById(faceId).exec(); // Return the updated face
+    return likedFace ? likedFace.toJSON() : null;
   }
 
-  async getUserInteraction(faceId: string, userId: string): Promise<FaceInteraction | null> {
-    return this.userInteractions.find(
-      i => i.userId === userId && i.faceId === faceId
-    ) || null;
+  async getUserInteraction(
+    faceId: string,
+    userId: string,
+  ): Promise<FaceInteraction | null> {
+    return this.faceInteractionModel.findOne({
+      userId: new Types.ObjectId(userId),
+      faceId: new Types.ObjectId(faceId),
+    });
   }
 }

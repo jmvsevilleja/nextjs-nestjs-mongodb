@@ -1,9 +1,19 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 
-export type UserDocument = HydratedDocument<Face>;
+export type FaceDocument = HydratedDocument<Face>;
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: {
+    transform: (_, ret) => {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class Face {
   @Prop()
   id: string;
@@ -19,30 +29,22 @@ export class Face {
 
   @Prop({ default: 0 })
   likes: number;
+
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  userId: string;
 }
 
 export const FaceSchema = SchemaFactory.createForClass(Face);
 
-// For GraphQL compatibility, we can expose the Mongoose _id as id
-FaceSchema.virtual('id').get(function () {
-  return this._id.toHexString();
-});
-
-FaceSchema.set('toJSON', {
-  virtuals: true,
-  transform: (doc, ret) => {
-    delete ret._id;
-    delete ret.__v;
-  },
-});
-
-FaceSchema.set('toObject', {
-  virtuals: true,
-  transform: (doc, ret) => {
-    delete ret._id;
-    delete ret.__v;
-  },
-});
+// FaceSchema.set('toJSON', {
+//   virtuals: true,
+//   transform: (doc, ret) => {
+//     ret.id = ret._id.toString();
+//     delete ret._id;
+//     delete ret.__v;
+//     return ret;
+//   },
+// });
 
 // Indexing for frequently queried fields
 FaceSchema.index({ name: 'text' });
