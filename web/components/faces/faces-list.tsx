@@ -114,7 +114,7 @@ export function FacesList({
       {!hasMoreFaces && displayedFaces.length > 0 && (
         <div className="text-center mt-8">
           <p className="text-muted-foreground">
-            You've reached the end of the gallery!
+            You&apos;ve reached the end of the gallery!
           </p>
         </div>
       )}

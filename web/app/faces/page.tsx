@@ -1,17 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MainHeader } from "@/components/layout/main-header";
-import { Heart, Eye, Loader2, ShoppingCart } from "lucide-react";
+import { Heart, Eye, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -102,13 +95,12 @@ export default function FacesPage() {
   const { toast } = useToast();
 
   // State for faces and UI
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isLoadingMore] = useState(false);
 
   // State for image viewing
   const [selectedFace, setSelectedFace] = useState<Face | null>(null);
   const [showCreditPrompt, setShowCreditPrompt] = useState(false);
-  const [viewedFaces, setViewedFaces] = useState<Set<string>>(new Set());
+  const [viewedFaces] = useState<Set<string>>(new Set());
 
   // GraphQL queries and mutations
   const { data: walletData, refetch: refetchWallet } = useQuery(GET_WALLET, {
@@ -121,13 +113,13 @@ export default function FacesPage() {
   const [sortBy, setSortBy] = useState<"createdAt" | "views" | "likes">(
     "views"
   );
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortOrder] = useState<"asc" | "desc">("desc");
   const [allFaces, setAllFaces] = useState<Face[]>([]);
   const [displayedFaces, setDisplayedFaces] = useState<Face[]>([]);
   const [hasMoreFaces, setHasMoreFaces] = useState(true);
 
   // Fetch faces with pagination
-  const { data, loading, error, fetchMore } = useQuery(GET_ALL_FACES, {
+  const { loading } = useQuery(GET_ALL_FACES, {
     variables: {
       input: {
         page,
@@ -211,7 +203,6 @@ export default function FacesPage() {
   // Event Handlers
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
-    setCurrentPage(1); // Reset to first page on new search
   };
 
   const handleSortByChange = (value: "createdAt" | "views" | "likes") => {
@@ -219,7 +210,6 @@ export default function FacesPage() {
     //   setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     // }
     setSortBy(value);
-    setCurrentPage(1);
   };
 
   const handleFaceClick = async (face: Face) => {
@@ -282,6 +272,7 @@ export default function FacesPage() {
           : "1 credit deducted for viewing larger image",
       });
     } catch (error) {
+      console.error('Error processing image view:', error);
       toast({
         title: "Error",
         description: "Failed to process image view",
@@ -328,6 +319,7 @@ export default function FacesPage() {
         description: `You ${face.isLiked ? "unliked" : "liked"} ${face.name}`,
       });
     } catch (error) {
+      console.error("Error updating like status:", error);
       toast({
         title: "Error",
         description: "Failed to update like status",
