@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, ListTodo, User, Wallet, Users } from "lucide-react"; // Added Smile icon
+import { Home, User, Wallet, Users, ListTodo } from "lucide-react"; // Added Smile icon
 
 export function Navigation() {
   const pathname = usePathname();
@@ -20,7 +20,7 @@ export function Navigation() {
       icon: Users, // Using Smile icon for Faces
     },
     {
-      href: "/dashboard",
+      href: "/todo",
       label: "Todos",
       icon: ListTodo,
     },
