@@ -14,10 +14,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "next-auth/react";
 import { TransactionManagement } from "@/components/admin/transaction-management";
 import Link from "next/link";
+import ThemeToggle from "@/components/theme-toggle";
+import Footer from "@/components/home/footer";
+import { Navbar } from "@/components/navbar";
 
 const GET_TRANSACTION_STATS = gql`
   query GetTransactionStats {
@@ -68,8 +70,8 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <p>You don&apos;t have permission to access this page.</p>
-            <Button onClick={() => router.push("/dashboard")}>
-              Go to Dashboard
+            <Button onClick={() => router.push("/")}>
+              Go home
             </Button>
           </CardContent>
         </Card>
@@ -80,32 +82,10 @@ export default function AdminPage() {
   const stats = statsData?.transactionStats;
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <ListTodo className="h-6 w-6" />
-              <span className="font-semibold">Todo App - Admin</span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              Admin: {session?.user?.name || session?.user?.email}
-            </p>
-            <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => signOut({ callbackUrl: "/" })}
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
+    <>
+      <Navbar />
 
-      <main className="container flex-1 py-8 space-y-8">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 flex-1 py-8 space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <p className="text-muted-foreground">
@@ -175,16 +155,9 @@ export default function AdminPage() {
 
         {/* Transaction Management */}
         <TransactionManagement />
-      </main>
+      </div>
 
-      <footer className="border-t py-6">
-        <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
-          <p className="text-center text-sm leading-loose text-muted-foreground">
-            &copy; {new Date().getFullYear()} Todo App Admin Panel. All rights
-            reserved.
-          </p>
-        </div>
-      </footer>
-    </div>
+      <Footer/>
+    </>
   );
 }

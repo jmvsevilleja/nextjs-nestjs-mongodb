@@ -13,12 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MainHeader } from "@/components/layout/main-header";
 import { Heart, Eye, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FacesList } from "../../components/faces/faces-list";
+import { Navbar } from "@/components/navbar";
+import Footer from "@/components/home/footer";
 
 // Update GraphQL query to include pagination and sorting parameters
 const GET_ALL_FACES = gql`
@@ -219,12 +220,13 @@ export default function FacesPage() {
         description: "Please sign in to view larger images",
         variant: "destructive",
       });
-      router.push("/auth/signin");
+      router.push("/signin");
       return;
     }
 
     const userCredits = walletData?.myWallet?.credits || 0;
     const hasAlreadyViewed = viewedFaces.has(face.id);
+    console.log("hasAlreadyViewed", hasAlreadyViewed);
 
     if (!hasAlreadyViewed && userCredits < 1) {
       setShowCreditPrompt(true);
@@ -272,7 +274,7 @@ export default function FacesPage() {
           : "1 credit deducted for viewing larger image",
       });
     } catch (error) {
-      console.error('Error processing image view:', error);
+      console.error("Error processing image view:", error);
       toast({
         title: "Error",
         description: "Failed to process image view",
@@ -290,7 +292,7 @@ export default function FacesPage() {
         description: "Please sign in to like faces",
         variant: "destructive",
       });
-      router.push("/auth/signin");
+      router.push("/signin");
       return;
     }
 
@@ -337,10 +339,10 @@ export default function FacesPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <MainHeader />
+    <>
+      <Navbar />
 
-      <main className="container flex-1 py-8 space-y-8">
+      <main className="max-w-screen-xl mx-auto px-4 sm:px-6 flex-1 py-8 space-y-8">
         {/* Search and Filter Section */}
 
         <div className="mb-6 flex flex-col gap-4 md:mb-8 md:flex-row md:items-center md:justify-between">
@@ -470,6 +472,7 @@ export default function FacesPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      <Footer />
+    </>
   );
 }

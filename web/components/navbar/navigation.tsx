@@ -54,7 +54,7 @@ export function Navigation() {
             )}
           >
             <Icon className="h-4 w-4" />
-            <span className="hidden sm:inline">{item.label}</span>
+            <span className="hidden md:inline">{item.label}</span>
           </Link>
         );
       })}

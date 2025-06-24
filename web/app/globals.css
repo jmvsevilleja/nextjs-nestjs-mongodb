@@ -2,17 +2,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-.container {
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 2rem;
-  padding-right: 2rem;
-}
-@media (min-width: 1536px) {
-  .container {
-    max-width: 1400px;
-  }
-}
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -193,6 +182,9 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  html {
+    @apply scroll-smooth;
   }
   body {
     @apply bg-background text-foreground;

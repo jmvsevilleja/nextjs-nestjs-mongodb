@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { PaymentPackages } from "@/components/wallet/payment-packages";
 import { TransactionHistory } from "@/components/wallet/transaction-history";
-import { MainHeader } from "@/components/layout/main-header";
+import { Navbar } from "@/components/navbar";
+import Footer from "@/components/home/footer";
 
 export default function WalletPage() {
   const { status } = useSession();
@@ -19,26 +20,19 @@ export default function WalletPage() {
   }
 
   if (status === "unauthenticated") {
-    router.push("/auth/signin");
+    router.push("/signin");
     return null;
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <MainHeader />
+    <>
+      <Navbar />
 
-      <main className="container flex-1 py-8 space-y-8">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 flex-1 py-8 space-y-8">
         <PaymentPackages />
         <TransactionHistory />
-      </main>
-
-      <footer className="border-t py-6">
-        <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
-          <p className="text-center text-sm leading-loose text-muted-foreground">
-            &copy; {new Date().getFullYear()} Todo App. All rights reserved.
-          </p>
-        </div>
-      </footer>
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 }

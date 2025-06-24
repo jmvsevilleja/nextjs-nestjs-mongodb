@@ -12,8 +12,9 @@ const fontSans = FontSans({
 });
 
 export const metadata = {
-  title: "Todo App",
-  description: "A full-stack todo application with authentication",
+  title: "Face App",
+  description:
+    "A face app for viewing and liking AI generated faces of a real person",
 };
 
 export default function RootLayout({

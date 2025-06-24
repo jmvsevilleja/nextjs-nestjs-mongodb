@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { TodoContainer } from "@/components/todo/todo-container";
-import { MainHeader } from "@/components/layout/main-header";
+import { Navbar } from "@/components/navbar";
+import Footer from "@/components/home/footer";
 
 export default function DashboardPage() {
   const { status } = useSession();
@@ -18,25 +19,17 @@ export default function DashboardPage() {
   }
 
   if (status === "unauthenticated") {
-    router.push("/auth/signin");
+    router.push("/signin");
     return null;
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <MainHeader />
-
-      <main className="container flex-1 py-8">
+    <>
+      <Navbar />
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 flex-1 py-8 space-y-8">
         <TodoContainer />
-      </main>
-
-      <footer className="border-t py-6">
-        <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
-          <p className="text-center text-sm leading-loose text-muted-foreground">
-            &copy; {new Date().getFullYear()} Todo App. All rights reserved.
-          </p>
-        </div>
-      </footer>
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 }

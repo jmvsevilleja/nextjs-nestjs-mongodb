@@ -1,30 +1,27 @@
 import Link from "next/link";
 import { AuthForm } from "@/components/auth/auth-form";
-import { ScanFace } from "lucide-react";
+import Navbar from "@/components/navbar/navbar";
+import Footer from "@/components/home/footer";
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="container flex h-16 items-center">
-        <Link href="/" className="flex items-center gap-2">
-          <ScanFace className="h-6 w-6" />
-          <span className="font-semibold">Face App</span>
-        </Link>
-      </div>
+    <>
+      <Navbar />
       <div className="flex flex-1 items-center justify-center py-12">
         <AuthForm mode="signup" />
       </div>
-      <div className="container flex h-16 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center ">
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link
-            href="/auth/signin"
+            href="/signin"
             className="text-primary underline underline-offset-4"
           >
             Sign in
           </Link>
         </p>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 }
