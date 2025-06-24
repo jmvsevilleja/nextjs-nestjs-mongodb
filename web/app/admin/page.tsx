@@ -5,8 +5,6 @@ import { useSession } from "next-auth/react";
 import { useQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
 import {
-  ListTodo,
-  LogOut,
   Users,
   DollarSign,
   Clock,
@@ -14,10 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { signOut } from "next-auth/react";
 import { TransactionManagement } from "@/components/admin/transaction-management";
-import Link from "next/link";
-import ThemeToggle from "@/components/theme-toggle";
 import Footer from "@/components/home/footer";
 import { Navbar } from "@/components/navbar";
 
