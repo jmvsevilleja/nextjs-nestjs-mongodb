@@ -6,7 +6,6 @@ import { useQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Eye, Heart, User, Calendar } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -15,6 +14,7 @@ import { Navbar } from "@/components/navbar";
 import Footer from "@/components/home/footer";
 import { Face } from "@/app/faces/page";
 import { format } from "date-fns";
+import Image from "next/image";
 
 const GET_USER_PROFILE = gql`
   query GetUserProfile($id: ID!) {
@@ -222,15 +222,21 @@ export default function UserProfilePage() {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-6">
-              <Avatar className="h-24 w-24">
-                <AvatarImage
-                  src={userProfile.profilePicture}
-                  alt={userProfile.name}
-                />
-                <AvatarFallback className="text-2xl">
-                  {userProfile.name.charAt(0).toUpperCase() || <User className="h-12 w-12" />}
-                </AvatarFallback>
-              </Avatar>
+              <div className="w-24 h-24 rounded-xl overflow-hidden bg-muted border-2 border-border">
+                {userProfile.profilePicture ? (
+                  <Image
+                    src={userProfile.profilePicture}
+                    alt={userProfile.name}
+                    width={96}
+                    height={96}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
               <div className="flex-1">
                 <CardTitle className="text-2xl">{userProfile.name}</CardTitle>
                 <p className="text-muted-foreground">{userProfile.email}</p>

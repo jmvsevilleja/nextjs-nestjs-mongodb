@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Form,
   FormControl,
@@ -28,6 +27,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 const GET_USER_PROFILE = gql`
   query GetUserProfile {
@@ -194,22 +194,26 @@ export default function ProfilePage() {
         {/* Avatar Section */}
         <div className="flex items-center gap-6">
           <div className="relative">
-            <Avatar className="h-24 w-24">
-              <AvatarImage
-                src={form.watch("profilePicture") || user?.profilePicture}
-                alt={user?.name || "Profile"}
-              />
-              <AvatarFallback className="text-lg">
-                {user?.name?.charAt(0)?.toUpperCase() || (
-                  <User className="h-8 w-8" />
-                )}
-              </AvatarFallback>
-            </Avatar>
+            <div className="w-32 h-32 rounded-xl overflow-hidden bg-muted border-2 border-border">
+              {(form.watch("profilePicture") || user?.profilePicture) ? (
+                <Image
+                  src={form.watch("profilePicture") || user?.profilePicture || ""}
+                  alt={user?.name || "Profile"}
+                  width={128}
+                  height={128}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <User className="h-12 w-12 text-muted-foreground" />
+                </div>
+              )}
+            </div>
             <label
               htmlFor="avatar-upload"
-              className="absolute -bottom-2 -right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+              className="absolute -bottom-2 -right-2 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg border-2 border-background"
             >
-              <Camera className="h-4 w-4" />
+              <Camera className="h-5 w-5" />
             </label>
             <input
               id="avatar-upload"
