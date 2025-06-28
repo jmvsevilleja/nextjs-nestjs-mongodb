@@ -8,9 +8,9 @@ import { Separator } from "@/components/ui/separator";
 
 export default function SettingsPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Settings</h1>
+        <h2 className="text-2xl font-bold">Settings</h2>
         <p className="text-muted-foreground">
           Manage your account preferences and privacy settings
         </p>

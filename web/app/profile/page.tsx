@@ -109,7 +109,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex justify-center p-8">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
@@ -183,127 +183,118 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Profile Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account settings and preferences
-        </p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-          <CardDescription>
-            Update your profile information and avatar
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Avatar Section */}
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <Avatar className="h-24 w-24">
-                <AvatarImage
-                  src={form.watch("profilePicture") || user?.profilePicture}
-                  alt={user?.name || "Profile"}
-                />
-                <AvatarFallback className="text-lg">
-                  {user?.name?.charAt(0)?.toUpperCase() || (
-                    <User className="h-8 w-8" />
-                  )}
-                </AvatarFallback>
-              </Avatar>
-              <label
-                htmlFor="avatar-upload"
-                className="absolute -bottom-2 -right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                <Camera className="h-4 w-4" />
-              </label>
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageUpload}
-                disabled={isUploading}
+    <Card>
+      <CardHeader>
+        <CardTitle>Personal Information</CardTitle>
+        <CardDescription>
+          Update your profile information and avatar
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Avatar Section */}
+        <div className="flex items-center gap-6">
+          <div className="relative">
+            <Avatar className="h-24 w-24">
+              <AvatarImage
+                src={form.watch("profilePicture") || user?.profilePicture}
+                alt={user?.name || "Profile"}
               />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-medium">Profile Picture</h3>
-              <p className="text-sm text-muted-foreground">
-                Click the camera icon to upload a new avatar
-              </p>
-              <p className="text-xs text-muted-foreground">
-                JPG, PNG or GIF. Max size 5MB.
-              </p>
-            </div>
-          </div>
-
-          {/* Profile Form */}
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4"
+              <AvatarFallback className="text-lg">
+                {user?.name?.charAt(0)?.toUpperCase() || (
+                  <User className="h-8 w-8" />
+                )}
+              </AvatarFallback>
+            </Avatar>
+            <label
+              htmlFor="avatar-upload"
+              className="absolute -bottom-2 -right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter your name"
-                        {...field}
-                        disabled={updateLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              <Camera className="h-4 w-4" />
+            </label>
+            <input
+              id="avatar-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageUpload}
+              disabled={isUploading}
+            />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-medium">Profile Picture</h3>
+            <p className="text-sm text-muted-foreground">
+              Click the camera icon to upload a new avatar
+            </p>
+            <p className="text-xs text-muted-foreground">
+              JPG, PNG or GIF. Max size 5MB.
+            </p>
+          </div>
+        </div>
+
+        {/* Profile Form */}
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4"
+          >
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your name"
+                      {...field}
+                      disabled={updateLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                value={user?.email || ""}
+                disabled
+                className="bg-muted"
               />
+              <p className="text-xs text-muted-foreground">
+                Email cannot be changed
+              </p>
+            </div>
 
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  value={user?.email || ""}
-                  disabled
-                  className="bg-muted"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Email cannot be changed
-                </p>
-              </div>
+            <FormField
+              control={form.control}
+              name="profilePicture"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profile Picture URL (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://example.com/avatar.jpg"
+                      {...field}
+                      disabled={updateLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="profilePicture"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Profile Picture URL (Optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="https://example.com/avatar.jpg"
-                        {...field}
-                        disabled={updateLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button
-                type="submit"
-                disabled={updateLoading || isUploading}
-                className="w-full"
-              >
-                {updateLoading ? "Updating..." : "Update Profile"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
+            <Button
+              type="submit"
+              disabled={updateLoading || isUploading}
+              className="w-full"
+            >
+              {updateLoading ? "Updating..." : "Update Profile"}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

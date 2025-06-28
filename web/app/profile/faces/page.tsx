@@ -274,7 +274,7 @@ export default function FaceManagementPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold">Face Management</h1>
+          <h2 className="text-2xl font-bold">Face Management</h2>
           <p className="text-muted-foreground">
             Upload and manage your face images with different styles and expressions
           </p>

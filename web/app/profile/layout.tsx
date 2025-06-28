@@ -7,22 +7,26 @@ import { cn } from "@/lib/utils";
 import { User, Image, Settings } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/home/footer";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const sidebarItems = [
   {
     href: "/profile",
     label: "Profile",
     icon: User,
+    value: "profile",
   },
   {
     href: "/profile/faces",
     label: "Face Management",
     icon: Image,
+    value: "faces",
   },
   {
     href: "/profile/settings",
     label: "Settings",
     icon: Settings,
+    value: "settings",
   },
 ];
 
@@ -48,44 +52,54 @@ export default function ProfileLayout({
     return null;
   }
 
+  // Determine current tab value based on pathname
+  const getCurrentTab = () => {
+    if (pathname === "/profile") return "profile";
+    if (pathname === "/profile/faces") return "faces";
+    if (pathname === "/profile/settings") return "settings";
+    return "profile";
+  };
+
   return (
     <>
       <Navbar />
-      <div className="flex min-h-screen">
-        {/* Left Sidebar */}
-        <div className="w-64 bg-muted/30 border-r">
-          <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Profile Menu</h2>
-            <nav className="space-y-2">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 flex-1 py-8 space-y-8">
+        {/* Profile Navigation Tabs */}
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold">Profile</h1>
+            <p className="text-muted-foreground">
+              Manage your account, faces, and settings
+            </p>
+          </div>
+
+          {/* Navigation Tabs */}
+          <Tabs value={getCurrentTab()} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
-                
                 return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
+                  <TabsTrigger
+                    key={item.value}
+                    value={item.value}
+                    asChild
+                    className="flex items-center gap-2"
                   >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
+                    <Link href={item.href}>
+                      <Icon className="h-4 w-4" />
+                      <span className="hidden sm:inline">{item.label}</span>
+                      <span className="sm:hidden">{item.label.split(' ')[0]}</span>
+                    </Link>
+                  </TabsTrigger>
                 );
               })}
-            </nav>
-          </div>
+            </TabsList>
+          </Tabs>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1">
-          <div className="max-w-4xl mx-auto px-6 py-8">
-            {children}
-          </div>
+        <div className="w-full">
+          {children}
         </div>
       </div>
       <Footer />
