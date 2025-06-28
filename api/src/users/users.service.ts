@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from './schemas/user.schema';
+import { Face, FaceDocument } from '../faces/schemas/face.schema';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { JwtService } from '@nestjs/jwt';
@@ -12,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Face.name) private faceModel: Model<FaceDocument>,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
   ) {}
@@ -57,6 +59,59 @@ export class UsersService {
 
   async findOneByGoogleId(googleId: string): Promise<User | null> {
     return this.userModel.findOne({ googleId }).exec();
+  }
+
+  async findAllWithStats(
+    page: number,
+    limit: number,
+    searchTerm?: string,
+    sortBy?: string,
+    sortOrder?: string,
+  ) {
+    const query: any = {};
+    if (searchTerm) {
+      query.name = { $regex: searchTerm, $options: 'i' };
+    }
+
+    const users = await this.userModel
+      .find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    // Get stats for each user
+    const usersWithStats = await Promise.all(
+      users.map(async (user) => {
+        const userFaces = await this.faceModel.find({ userId: user._id }).exec();
+        
+        const totalViews = userFaces.reduce((sum, face) => sum + face.views, 0);
+        const totalLikes = userFaces.reduce((sum, face) => sum + face.likes, 0);
+        const totalFaces = userFaces.length;
+
+        return {
+          ...user.toJSON(),
+          totalViews,
+          totalLikes,
+          totalFaces,
+        };
+      })
+    );
+
+    // Sort the results
+    if (sortBy) {
+      usersWithStats.sort((a, b) => {
+        const aValue = a[sortBy] || 0;
+        const bValue = b[sortBy] || 0;
+        
+        if (sortOrder === 'desc') {
+          return bValue - aValue;
+        } else {
+          return aValue - bValue;
+        }
+      });
+    }
+
+    return usersWithStats;
   }
 
   async validateUser(email: string, password: string): Promise<User | null> {
