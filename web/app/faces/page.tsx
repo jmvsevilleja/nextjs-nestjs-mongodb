@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { Heart, Eye, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
@@ -158,7 +159,7 @@ export default function FacesPage() {
   const [displayedFaces, setDisplayedFaces] = useState<Face[]>([]);
   const [hasMoreFaces, setHasMoreFaces] = useState(true);
 
-  // Fetch faces with pagination
+  // Fetch faces with pagination - REMOVED userId to show all faces
   const { loading } = useQuery(GET_ALL_FACES, {
     variables: {
       input: {
@@ -167,7 +168,7 @@ export default function FacesPage() {
         searchTerm,
         sortBy,
         sortOrder,
-        userId: session?.user?.id,
+        // Removed userId parameter to show all faces regardless of login status
       },
     },
     onCompleted: (data) => {
@@ -379,6 +380,73 @@ export default function FacesPage() {
 
   const userProducts = productsData?.userProducts || [];
 
+  // Helper function to get product name by ID
+  const getProductName = (productId: string) => {
+    const userProduct = userProducts.find((up) => up.product.id === productId);
+    return userProduct?.product.name || productId;
+  };
+
+  // Helper function to parse face name into username
+  const parseUsername = (faceName: string) => {
+    return faceName.split("-")[0] || "user";
+  };
+
+  // Helper function to render face tags for dialog
+  const renderFaceTags = (face: Face) => {
+    const tags = [];
+
+    // 1. Username tag (blue)
+    tags.push(
+      <Badge
+        key="username"
+        className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-sm"
+      >
+        {parseUsername(face.name)}
+      </Badge>
+    );
+
+    // 2. Expression tag (green)
+    if (face.expression) {
+      tags.push(
+        <Badge
+          key="expression"
+          className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 text-sm"
+        >
+          {face.expression}
+        </Badge>
+      );
+    }
+
+    // 3. Style tag (purple)
+    if (face.style) {
+      tags.push(
+        <Badge
+          key="style"
+          className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 text-sm"
+        >
+          {face.style}
+        </Badge>
+      );
+    }
+
+    // 4. Products used tags (orange)
+    if (face.productsUsed && face.productsUsed.length > 0) {
+      face.productsUsed.forEach((productId, index) => {
+        const productName = getProductName(productId);
+        tags.push(
+          <Badge
+            key={`product-${index}`}
+            className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300 text-sm"
+          >
+            {productName}
+          </Badge>
+        );
+      });
+    }
+
+    return tags;
+  };
+
   return (
     <>
       <Navbar />
@@ -445,6 +513,11 @@ export default function FacesPage() {
           </DialogHeader>
           {selectedFace && (
             <div className="space-y-4">
+              {/* Face Tags */}
+              <div className="flex flex-wrap gap-2">
+                {renderFaceTags(selectedFace)}
+              </div>
+
               <div className="aspect-square w-full overflow-hidden rounded-lg">
                 <Image
                   src={selectedFace.imageUrl}
