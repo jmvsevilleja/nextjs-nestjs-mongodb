@@ -1,0 +1,250 @@
+[
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8c9d" },
+    "name": "Wigs",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9d" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8c9e" },
+    "name": "Hair Extensions",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9d" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8c9f" },
+    "name": "Hair Clips & Pins",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9d" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8ca0" },
+    "name": "Headbands",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9d" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8ca1" },
+    "name": "Hats & Caps",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9d" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8ca2" },
+    "name": "Scarves",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9d" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8ca3" },
+    "name": "Eye Glasses",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9e" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8ca4" },
+    "name": "Contact Lenses",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9e" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8ca5" },
+    "name": "Lipstick / Lip Gloss / Lip Liner",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8ca6" },
+    "name": "False Eyelashes",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8ca7" },
+    "name": "Mascara",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8ca8" },
+    "name": "Eyeliner",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8ca9" },
+    "name": "Eyeshadow",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8caa" },
+    "name": "Brow Kits",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cab" },
+    "name": "Blush & Contour",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cac" },
+    "name": "Highlighter",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cad" },
+    "name": "Foundation & Concealer",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cae" },
+    "name": "Face Gems & Stickers",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8caf" },
+    "name": "Temporary Face Tattoos",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cb0" },
+    "name": "Glitter & Shimmer",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cb1" },
+    "name": "Face Paint",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cb2" },
+    "name": "Cosplay Makeup Kits",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cb3" },
+    "name": "SFX Makeup",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cb4" },
+    "name": "Face Prosthetics",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cb5" },
+    "name": "Costume Facial Hair",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8c9f" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cb6" },
+    "name": "Nose Jewelry",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8ca0" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cb7" },
+    "name": "Lip Jewelry",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8ca0" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cb8" },
+    "name": "Ear Jewelry",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8ca0" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cb9" },
+    "name": "Eyebrow Jewelry",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8ca0" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cba" },
+    "name": "Neck Jewelry",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8ca0" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "674d1b1b2c3d4e5f6a7b8cbb" },
+    "name": "Cheek & Dermal Jewelry",
+    "parentCategoryId": { "$oid": "674d1a1b2c3d4e5f6a7b8ca0" },
+    "isActive": true,
+    "createdAt": { "$date": "2024-01-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2024-01-01T00:00:00.000Z" }
+  }
+]

@@ -11,6 +11,7 @@ import { UsersModule } from './users/users.module';
 import { TodosModule } from './todos/todos.module';
 import { WalletModule } from './wallet/wallet.module';
 import { FacesModule } from './faces/faces.module';
+import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
@@ -39,7 +40,8 @@ import { FacesModule } from './faces/faces.module';
     UsersModule,
     TodosModule,
     WalletModule,
-    FacesModule, // Added FacesModule here
+    FacesModule,
+    ProductsModule,
   ],
 })
 export class AppModule {}
