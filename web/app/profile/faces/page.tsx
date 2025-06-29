@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Edit, User, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -40,6 +41,36 @@ const GET_USER_FACES = gql`
       createdAt
       updatedAt
       userId
+      expression
+      style
+      makeup
+      accessories
+      productsUsed
+    }
+  }
+`;
+
+const GET_USER_PRODUCTS = gql`
+  query GetUserProducts {
+    userProducts {
+      id
+      product {
+        id
+        name
+        description
+        price
+        imageUrl
+        category {
+          id
+          name
+          parentCategory {
+            id
+            name
+          }
+        }
+      }
+      purchaseDate
+      isUsed
     }
   }
 `;
@@ -61,6 +92,32 @@ interface Face {
   createdAt: string;
   updatedAt: string;
   userId: string;
+  expression?: string;
+  style?: string;
+  makeup?: string;
+  accessories?: string;
+  productsUsed?: string[];
+}
+
+interface UserProduct {
+  id: string;
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    imageUrl: string;
+    category: {
+      id: string;
+      name: string;
+      parentCategory: {
+        id: string;
+        name: string;
+      };
+    };
+  };
+  purchaseDate: string;
+  isUsed: boolean;
 }
 
 export default function FaceManagementPage() {
@@ -79,6 +136,8 @@ export default function FaceManagementPage() {
     },
     skip: !session?.user?.id,
   });
+
+  const { data: productsData } = useQuery(GET_USER_PRODUCTS);
 
   const [deleteFace] = useMutation(DELETE_FACE, {
     onCompleted: () => {
@@ -99,6 +158,7 @@ export default function FaceManagementPage() {
 
   const user = profileData?.me;
   const faces: Face[] = facesData?.allFaces || [];
+  const userProducts: UserProduct[] = productsData?.userProducts || [];
 
   const handleEdit = (face: Face) => {
     router.push(`/profile/faces/edit/${face.id}`);
@@ -114,6 +174,61 @@ export default function FaceManagementPage() {
 
   const handleCreateNew = () => {
     router.push("/profile/faces/create");
+  };
+
+  // Helper function to get product name by ID
+  const getProductName = (productId: string) => {
+    const userProduct = userProducts.find(up => up.product.id === productId);
+    return userProduct?.product.name || productId;
+  };
+
+  // Helper function to parse face name into username
+  const parseUsername = (faceName: string) => {
+    return faceName.split('-')[0] || 'user';
+  };
+
+  // Helper function to render tags for a face
+  const renderFaceTags = (face: Face) => {
+    const tags = [];
+    
+    // 1. Username tag (blue)
+    tags.push(
+      <Badge key="username" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+        {parseUsername(face.name)}
+      </Badge>
+    );
+
+    // 2. Expression tag (green)
+    if (face.expression) {
+      tags.push(
+        <Badge key="expression" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+          {face.expression}
+        </Badge>
+      );
+    }
+
+    // 3. Style tag (purple)
+    if (face.style) {
+      tags.push(
+        <Badge key="style" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+          {face.style}
+        </Badge>
+      );
+    }
+
+    // 4. Products used tags (orange)
+    if (face.productsUsed && face.productsUsed.length > 0) {
+      face.productsUsed.forEach((productId, index) => {
+        const productName = getProductName(productId);
+        tags.push(
+          <Badge key={`product-${index}`} className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
+            {productName}
+          </Badge>
+        );
+      });
+    }
+
+    return tags;
   };
 
   if (loading) {
@@ -139,6 +254,29 @@ export default function FaceManagementPage() {
           Generate New Face
         </Button>
       </div>
+
+      {/* Tag Legend */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Tag Legend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+              Username
+            </Badge>
+            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+              Expression
+            </Badge>
+            <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+              Style
+            </Badge>
+            <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
+              Products Used
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Faces Grid - Updated to 4 columns */}
       {faces.length === 0 ? (
@@ -169,8 +307,12 @@ export default function FaceManagementPage() {
                 />
               </div>
               <CardContent className="p-4">
-                <div className="space-y-2">
-                  <h3 className="font-semibold line-clamp-1">{face.name}</h3>
+                <div className="space-y-3">
+                  {/* Tags instead of name */}
+                  <div className="flex flex-wrap gap-1">
+                    {renderFaceTags(face)}
+                  </div>
+                  
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-1">
