@@ -12,7 +12,7 @@ export class Category {
   isParent: boolean;
 
   @Field(() => Category, { nullable: true })
-  parent?: Category;
+  parentCategory?: Category;
 
   @Field()
   isActive: boolean;

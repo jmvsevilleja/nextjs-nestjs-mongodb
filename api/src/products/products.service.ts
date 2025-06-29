@@ -1,9 +1,16 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { Category, CategoryDocument } from './schemas/category.schema';
-import { UserProduct, UserProductDocument } from './schemas/user-product.schema';
+import {
+  UserProduct,
+  UserProductDocument,
+} from './schemas/user-product.schema';
 import { CreateProductInput } from './dto/create-product.input';
 import { UpdateProductInput } from './dto/update-product.input';
 import { Product as ProductModel } from './models/product.model';
@@ -14,12 +21,17 @@ export class ProductsService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
-    @InjectModel(UserProduct.name) private userProductModel: Model<UserProductDocument>,
+    @InjectModel(UserProduct.name)
+    private userProductModel: Model<UserProductDocument>,
   ) {}
 
   // Product CRUD Operations
-  async createProduct(createProductInput: CreateProductInput): Promise<ProductModel> {
-    const category = await this.categoryModel.findById(createProductInput.categoryId);
+  async createProduct(
+    createProductInput: CreateProductInput,
+  ): Promise<ProductModel> {
+    const category = await this.categoryModel.findById(
+      createProductInput.categoryId,
+    );
     if (!category) {
       throw new NotFoundException('Category not found');
     }
@@ -29,7 +41,10 @@ export class ProductsService {
     return this.findProductById(savedProduct.id);
   }
 
-  async findAllProducts(categoryId?: string, search?: string): Promise<ProductModel[]> {
+  async findAllProducts(
+    categoryId?: string,
+    search?: string,
+  ): Promise<ProductModel[]> {
     const query: any = { isActive: true };
 
     if (categoryId) {
@@ -37,11 +52,11 @@ export class ProductsService {
       const category = await this.categoryModel.findById(categoryId);
       if (category?.isParent) {
         // Find all child categories under this parent
-        const childCategories = await this.categoryModel.find({ 
+        const childCategories = await this.categoryModel.find({
           parentId: categoryId,
-          isActive: true 
+          isActive: true,
         });
-        const categoryIds = childCategories.map(cat => cat._id);
+        const categoryIds = childCategories.map((cat) => cat._id);
         query.categoryId = { $in: categoryIds };
       } else {
         query.categoryId = new Types.ObjectId(categoryId);
@@ -63,7 +78,7 @@ export class ProductsService {
       .sort({ isPopular: -1, rating: -1, createdAt: -1 })
       .exec();
 
-    return products.map(product => this.transformProduct(product));
+    return products.map((product) => this.transformProduct(product.toJSON()));
   }
 
   async findProductById(id: string): Promise<ProductModel> {
@@ -81,15 +96,16 @@ export class ProductsService {
       throw new NotFoundException('Product not found');
     }
 
-    return this.transformProduct(product);
+    return this.transformProduct(product.toJSON());
   }
 
-  async updateProduct(id: string, updateProductInput: UpdateProductInput): Promise<ProductModel> {
-    const product = await this.productModel.findByIdAndUpdate(
-      id,
-      updateProductInput,
-      { new: true }
-    ).exec();
+  async updateProduct(
+    id: string,
+    updateProductInput: UpdateProductInput,
+  ): Promise<ProductModel> {
+    const product = await this.productModel
+      .findByIdAndUpdate(id, updateProductInput, { new: true })
+      .exec();
 
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -99,11 +115,9 @@ export class ProductsService {
   }
 
   async deleteProduct(id: string): Promise<boolean> {
-    const result = await this.productModel.findByIdAndUpdate(
-      id,
-      { isActive: false },
-      { new: true }
-    ).exec();
+    const result = await this.productModel
+      .findByIdAndUpdate(id, { isActive: false }, { new: true })
+      .exec();
 
     return !!result;
   }
@@ -121,7 +135,7 @@ export class ProductsService {
       .sort({ createdAt: -1 })
       .exec();
 
-    return products.map(product => this.transformProduct(product));
+    return products.map((product) => this.transformProduct(product.toJSON()));
   }
 
   // Category Operations
@@ -130,8 +144,9 @@ export class ProductsService {
       .find({ isActive: true, isParent: false })
       .populate('parentId')
       .exec();
-
-    return categories.map(category => this.transformCategory(category));
+    return categories.map((category) =>
+      this.transformCategory(category.toJSON()),
+    );
   }
 
   async findAllParentCategories(): Promise<CategoryModel[]> {
@@ -139,11 +154,14 @@ export class ProductsService {
       .find({ isActive: true, isParent: true })
       .exec();
 
-    return parentCategories.map(pc => pc.toJSON());
+    return parentCategories.map((pc) => pc.toJSON());
   }
 
   // User Product Operations
-  async purchaseProduct(userId: string, productId: string): Promise<{ success: boolean; message: string; newBalance: number }> {
+  async purchaseProduct(
+    userId: string,
+    productId: string,
+  ): Promise<{ success: boolean; message: string; newBalance: number }> {
     // Check if user already owns this product
     const existingUserProduct = await this.userProductModel.findOne({
       userId: new Types.ObjectId(userId),
@@ -195,14 +213,17 @@ export class ProductsService {
       .sort({ purchaseDate: -1 })
       .exec();
 
-    return userProducts.map(up => ({
-      id: up.id,
-      product: this.transformProduct(up.productId as any),
-      purchaseDate: up.purchaseDate,
-      isUsed: up.isUsed,
-      createdAt: up.createdAt,
-      updatedAt: up.updatedAt,
-    }));
+    return userProducts.map((up) => {
+      const userProductJson = up.toJSON();
+      return {
+        id: userProductJson.id,
+        product: this.transformProduct(userProductJson.productId),
+        purchaseDate: userProductJson.purchaseDate,
+        isUsed: userProductJson.isUsed,
+        createdAt: userProductJson.createdAt,
+        updatedAt: userProductJson.updatedAt,
+      };
+    });
   }
 
   // Helper methods
@@ -233,7 +254,7 @@ export class ProductsService {
     };
 
     if (category.parentId && !category.isParent) {
-      result.parent = {
+      result.parentCategory = {
         id: category.parentId.id,
         name: category.parentId.name,
         isParent: category.parentId.isParent,
