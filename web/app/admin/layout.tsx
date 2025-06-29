@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { BarChart3, Package, Users, CreditCard } from "lucide-react";
+import { BarChart3, Package, Users, CreditCard, FolderTree } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/home/footer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +20,12 @@ const adminItems = [
     label: "Products",
     icon: Package,
     value: "products",
+  },
+  {
+    href: "/admin/categories",
+    label: "Categories",
+    icon: FolderTree,
+    value: "categories",
   },
   {
     href: "/admin/users",
@@ -73,6 +79,7 @@ export default function AdminLayout({
   const getCurrentTab = () => {
     if (pathname === "/admin") return "dashboard";
     if (pathname === "/admin/products") return "products";
+    if (pathname === "/admin/categories") return "categories";
     if (pathname === "/admin/users") return "users";
     if (pathname === "/admin/transactions") return "transactions";
     return "dashboard";
@@ -87,13 +94,13 @@ export default function AdminLayout({
           <div className="space-y-2">
             <h1 className="text-3xl font-bold">Admin Panel</h1>
             <p className="text-muted-foreground">
-              Manage products, users, and system settings
+              Manage products, categories, users, and system settings
             </p>
           </div>
 
           {/* Navigation Tabs */}
           <Tabs value={getCurrentTab()} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               {adminItems.map((item) => {
                 const Icon = item.icon;
                 return (
