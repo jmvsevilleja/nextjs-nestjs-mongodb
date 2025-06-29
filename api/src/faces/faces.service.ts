@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Face, FaceDocument } from './schemas/face.schema';
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -6,6 +6,8 @@ import {
   FaceInteraction,
   FaceInteractionDocument,
 } from './schemas/face-interaction.schema';
+import { CreateFaceInput } from './dto/create-face.input';
+import { UpdateFaceInput } from './dto/update-face.input';
 
 @Injectable()
 export class FacesService {
@@ -14,6 +16,16 @@ export class FacesService {
     @InjectModel(FaceInteraction.name)
     private faceInteractionModel: Model<FaceInteractionDocument>,
   ) {}
+
+  async create(createFaceInput: CreateFaceInput, userId: string): Promise<Face> {
+    const newFace = new this.faceModel({
+      ...createFaceInput,
+      userId,
+    });
+
+    const face = await newFace.save();
+    return face.toJSON();
+  }
 
   async findAll(
     page: number,
@@ -26,6 +38,11 @@ export class FacesService {
     const query: any = {};
     if (searchTerm) {
       query.name = { $regex: searchTerm, $options: 'i' };
+    }
+
+    // If userId is provided, filter by user's faces
+    if (userId) {
+      query.userId = new Types.ObjectId(userId);
     }
 
     const sort: any = {};
@@ -72,6 +89,44 @@ export class FacesService {
     });
   }
 
+  async findOne(id: string): Promise<Face | null> {
+    const face = await this.faceModel.findById(id).exec();
+    return face ? face.toJSON() : null;
+  }
+
+  async update(id: string, updateFaceInput: UpdateFaceInput, userId: string): Promise<Face | null> {
+    const face = await this.faceModel.findById(id).exec();
+    
+    if (!face) {
+      throw new NotFoundException(`Face with ID ${id} not found`);
+    }
+
+    if (face.userId.toString() !== userId) {
+      throw new ForbiddenException('You can only update your own faces');
+    }
+
+    const updatedFace = await this.faceModel
+      .findByIdAndUpdate(id, updateFaceInput, { new: true })
+      .exec();
+
+    return updatedFace ? updatedFace.toJSON() : null;
+  }
+
+  async remove(id: string, userId: string): Promise<boolean> {
+    const face = await this.faceModel.findById(id).exec();
+    
+    if (!face) {
+      throw new NotFoundException(`Face with ID ${id} not found`);
+    }
+
+    if (face.userId.toString() !== userId) {
+      throw new ForbiddenException('You can only delete your own faces');
+    }
+
+    const result = await this.faceModel.deleteOne({ _id: id }).exec();
+    return result.deletedCount === 1;
+  }
+
   async incrementView(faceId: string, userId: string): Promise<Face | null> {
     const face = await this.faceModel.findById(faceId).exec();
     if (!face) {
@@ -84,11 +139,6 @@ export class FacesService {
       faceId: new Types.ObjectId(faceId),
     });
 
-    console.log(
-      'interaction',
-      interaction,
-      !interaction || !interaction.hasViewed,
-    );
     if (!interaction || !interaction.hasViewed) {
       // Increment view count only if not viewed by this user before
       await this.faceModel
@@ -141,7 +191,7 @@ export class FacesService {
       .findByIdAndUpdate(faceId, { $inc: { likes: likeChange } })
       .exec();
 
-    const likedFace = await this.faceModel.findById(faceId).exec(); // Return the updated face
+    const likedFace = await this.faceModel.findById(faceId).exec();
     return likedFace ? likedFace.toJSON() : null;
   }
 

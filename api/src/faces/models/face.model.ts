@@ -31,4 +31,19 @@ export class Face {
 
   @Field()
   userId: string;
+
+  @Field({ nullable: true })
+  expression?: string;
+
+  @Field({ nullable: true })
+  style?: string;
+
+  @Field({ nullable: true })
+  makeup?: string;
+
+  @Field({ nullable: true })
+  accessories?: string;
+
+  @Field(() => [String], { nullable: true })
+  productsUsed?: string[];
 }

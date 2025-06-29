@@ -32,22 +32,28 @@ export class Face {
 
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   userId: string;
+
+  @Prop()
+  expression: string;
+
+  @Prop()
+  style: string;
+
+  @Prop()
+  makeup: string;
+
+  @Prop()
+  accessories: string;
+
+  @Prop({ type: [String], default: [] })
+  productsUsed: string[];
 }
 
 export const FaceSchema = SchemaFactory.createForClass(Face);
-
-// FaceSchema.set('toJSON', {
-//   virtuals: true,
-//   transform: (doc, ret) => {
-//     ret.id = ret._id.toString();
-//     delete ret._id;
-//     delete ret.__v;
-//     return ret;
-//   },
-// });
 
 // Indexing for frequently queried fields
 FaceSchema.index({ name: 'text' });
 FaceSchema.index({ views: -1 });
 FaceSchema.index({ likes: -1 });
 FaceSchema.index({ createdAt: -1 });
+FaceSchema.index({ userId: 1 });
