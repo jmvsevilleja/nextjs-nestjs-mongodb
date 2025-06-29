@@ -190,30 +190,30 @@ export default function ProfilePage() {
           Update your profile information and avatar
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Avatar Section */}
-        <div className="flex items-center gap-6">
+      <CardContent className="space-y-8">
+        {/* Avatar Section - Centered and Bigger */}
+        <div className="flex flex-col items-center space-y-4">
           <div className="relative">
-            <div className="w-32 h-32 rounded-xl overflow-hidden bg-muted border-2 border-border">
+            <div className="w-48 h-48 rounded-xl overflow-hidden bg-muted border-2 border-border shadow-lg">
               {(form.watch("profilePicture") || user?.profilePicture) ? (
                 <Image
                   src={form.watch("profilePicture") || user?.profilePicture || ""}
                   alt={user?.name || "Profile"}
-                  width={128}
-                  height={128}
+                  width={192}
+                  height={192}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <User className="h-12 w-12 text-muted-foreground" />
+                  <User className="h-20 w-20 text-muted-foreground" />
                 </div>
               )}
             </div>
             <label
               htmlFor="avatar-upload"
-              className="absolute -bottom-2 -right-2 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg border-2 border-background"
+              className="absolute -bottom-3 -right-3 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg border-2 border-background transition-colors"
             >
-              <Camera className="h-5 w-5" />
+              <Camera className="h-6 w-6" />
             </label>
             <input
               id="avatar-upload"
@@ -224,8 +224,8 @@ export default function ProfilePage() {
               disabled={isUploading}
             />
           </div>
-          <div className="space-y-1">
-            <h3 className="font-medium">Profile Picture</h3>
+          <div className="text-center space-y-1">
+            <h3 className="text-lg font-semibold">Profile Picture</h3>
             <p className="text-sm text-muted-foreground">
               Click the camera icon to upload a new avatar
             </p>
@@ -239,7 +239,7 @@ export default function ProfilePage() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4"
+            className="space-y-6"
           >
             <FormField
               control={form.control}
