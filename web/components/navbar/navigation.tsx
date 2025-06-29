@@ -47,7 +47,6 @@ export function Navigation() {
         const Icon = item.icon;
         const isActive =
           pathname === item.href ||
-          (item.href === "/dashboard" && pathname === "/dashboard") ||
           (item.href === "/people" && pathname.startsWith("/people")) ||
           (item.href === "/shop" && pathname.startsWith("/shop"));
 

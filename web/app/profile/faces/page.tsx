@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Upload, Plus, Trash2, Edit } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,24 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import {
   Dialog,
   DialogContent,
@@ -39,61 +20,63 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Plus, Trash2, Edit, User, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
-const faceFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string().optional(),
-  expression: z.string().default("normal"),
-  style: z.string().default("photoshoot"),
-  makeup: z.string().default("none"),
-  accessories: z.string().default("none"),
-  imageFile: z.any().optional(),
-});
+const GET_USER_PROFILE = gql`
+  query GetUserProfile {
+    me {
+      id
+      name
+      email
+      profilePicture
+    }
+  }
+`;
+
+const GET_USER_PRODUCTS = gql`
+  query GetUserProducts {
+    userProducts {
+      id
+      product {
+        id
+        name
+        description
+        price
+        imageUrl
+        category {
+          id
+          name
+          parentCategory {
+            id
+            name
+          }
+        }
+      }
+      purchaseDate
+      isUsed
+    }
+  }
+`;
 
 const expressions = [
-  { value: "normal", label: "Normal" },
-  { value: "happy", label: "Happy" },
-  { value: "sad", label: "Sad" },
-  { value: "smiling", label: "Smiling" },
-  { value: "winking", label: "Winking" },
-  { value: "surprised", label: "Surprised" },
-  { value: "angry", label: "Angry" },
-  { value: "laughing", label: "Laughing" },
+  { value: "neutral", label: "Neutral", imageUrl: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg" },
+  { value: "smiling", label: "Smiling", imageUrl: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg" },
+  { value: "happy", label: "Happy", imageUrl: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg" },
+  { value: "surprised", label: "Surprised", imageUrl: "https://images.pexels.com/photos/1040881/pexels-photo-1040881.jpeg" },
+  { value: "winking", label: "Winking", imageUrl: "https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg" },
+  { value: "laughing", label: "Laughing", imageUrl: "https://images.pexels.com/photos/1043473/pexels-photo-1043473.jpeg" },
 ];
 
 const styles = [
-  { value: "photoshoot", label: "Photoshoot" },
-  { value: "painting", label: "Painting" },
-  { value: "cartoon", label: "Cartoon" },
-  { value: "sketch", label: "Sketch" },
-  { value: "vintage", label: "Vintage" },
-  { value: "modern", label: "Modern" },
-  { value: "artistic", label: "Artistic" },
-  { value: "professional", label: "Professional" },
-];
-
-const makeupOptions = [
-  { value: "none", label: "None" },
-  { value: "natural", label: "Natural" },
-  { value: "glamorous", label: "Glamorous" },
-  { value: "bold", label: "Bold" },
-  { value: "subtle", label: "Subtle" },
-  { value: "dramatic", label: "Dramatic" },
-  { value: "vintage", label: "Vintage" },
-  { value: "editorial", label: "Editorial" },
-];
-
-const accessoryOptions = [
-  { value: "none", label: "None" },
-  { value: "glasses", label: "Glasses" },
-  { value: "sunglasses", label: "Sunglasses" },
-  { value: "hat", label: "Hat" },
-  { value: "earrings", label: "Earrings" },
-  { value: "necklace", label: "Necklace" },
-  { value: "headband", label: "Headband" },
-  { value: "scarf", label: "Scarf" },
+  { value: "photoshoot", label: "Photoshoot", imageUrl: "https://images.pexels.com/photos/1040881/pexels-photo-1040881.jpeg" },
+  { value: "portrait", label: "Portrait", imageUrl: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg" },
+  { value: "casual", label: "Casual", imageUrl: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg" },
+  { value: "professional", label: "Professional", imageUrl: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg" },
+  { value: "artistic", label: "Artistic", imageUrl: "https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg" },
+  { value: "vintage", label: "Vintage", imageUrl: "https://images.pexels.com/photos/1043473/pexels-photo-1043473.jpeg" },
 ];
 
 interface Face {
@@ -103,156 +86,154 @@ interface Face {
   imageUrl: string;
   expression: string;
   style: string;
-  makeup: string;
-  accessories: string;
+  selectedProducts: string[];
   createdAt: Date;
 }
 
+interface UserProduct {
+  id: string;
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    imageUrl: string;
+    category: {
+      id: string;
+      name: string;
+      parentCategory: {
+        id: string;
+        name: string;
+      };
+    };
+  };
+  purchaseDate: string;
+  isUsed: boolean;
+}
+
+interface ProductsByCategory {
+  [categoryName: string]: UserProduct[];
+}
+
 export default function FaceManagementPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
   const [faces, setFaces] = useState<Face[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingFace, setEditingFace] = useState<Face | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof faceFormSchema>>({
-    resolver: zodResolver(faceFormSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      expression: "normal",
-      style: "photoshoot",
-      makeup: "none",
-      accessories: "none",
-    },
-  });
+  // Selection states
+  const [selectedExpression, setSelectedExpression] = useState("neutral");
+  const [selectedStyle, setSelectedStyle] = useState("photoshoot");
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const { data: profileData } = useQuery(GET_USER_PROFILE);
+  const { data: productsData } = useQuery(GET_USER_PRODUCTS);
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Error",
-        description: "Please select a valid image file",
-        variant: "destructive",
-      });
-      return;
+  const user = profileData?.me;
+  const userProducts: UserProduct[] = productsData?.userProducts || [];
+
+  // Group products by parent category
+  const productsByCategory: ProductsByCategory = userProducts.reduce((acc, userProduct) => {
+    const categoryName = userProduct.product.category.parentCategory.name;
+    if (!acc[categoryName]) {
+      acc[categoryName] = [];
     }
+    acc[categoryName].push(userProduct);
+    return acc;
+  }, {} as ProductsByCategory);
 
-    // Validate file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "Error",
-        description: "Image size must be less than 10MB",
-        variant: "destructive",
-      });
-      return;
+  // Generate default faces on component mount
+  useEffect(() => {
+    if (user && faces.length === 0) {
+      generateDefaultFaces();
     }
+  }, [user]);
 
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setPreviewImage(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+  const generateDefaultFaces = () => {
+    if (!user) return;
 
-    // Store file for form submission
-    form.setValue("imageFile", file);
+    const username = user.name.toLowerCase().replace(/\s+/g, '_');
+    const defaultExpressions = ['neutral', 'smiling', 'happy'];
+    
+    const defaultFaces: Face[] = defaultExpressions.map(expression => ({
+      id: `${Date.now()}-${expression}`,
+      name: `${username}-${expression}-photoshoot`,
+      imageUrl: user.profilePicture || `https://i.pravatar.cc/400?u=${user.email}`,
+      expression,
+      style: 'photoshoot',
+      selectedProducts: [],
+      createdAt: new Date(),
+    }));
+
+    setFaces(defaultFaces);
   };
 
-  const uploadToVercel = async (file: File): Promise<string> => {
-    // This is a mock implementation
-    // In a real app, you would upload to Vercel Blob Storage
-    // For now, we'll simulate the upload and return a placeholder URL
-    
-    setIsUploading(true);
-    
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Return a mock URL (in production, this would be the actual Vercel Blob URL)
-    const mockUrl = `https://example.vercel.app/uploads/${Date.now()}-${file.name}`;
-    
-    setIsUploading(false);
-    return mockUrl;
+  const generateFaceName = () => {
+    if (!user) return '';
+    const username = user.name.toLowerCase().replace(/\s+/g, '_');
+    return `${username}-${selectedExpression}-${selectedStyle}`;
   };
 
-  const onSubmit = async (values: z.infer<typeof faceFormSchema>) => {
+  const handleGenerateFace = async () => {
+    if (!user) return;
+
+    setIsGenerating(true);
+
     try {
-      if (!values.imageFile && !editingFace) {
-        toast({
-          title: "Error",
-          description: "Please select an image",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Simulate face generation process
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      let imageUrl = editingFace?.imageUrl || "";
-
-      // Upload image if a new file is selected
-      if (values.imageFile) {
-        imageUrl = await uploadToVercel(values.imageFile);
-      }
-
-      const faceData: Face = {
-        id: editingFace?.id || Date.now().toString(),
-        name: values.name,
-        description: values.description,
-        imageUrl,
-        expression: values.expression,
-        style: values.style,
-        makeup: values.makeup,
-        accessories: values.accessories,
-        createdAt: editingFace?.createdAt || new Date(),
+      const newFace: Face = {
+        id: Date.now().toString(),
+        name: generateFaceName(),
+        imageUrl: user.profilePicture || `https://i.pravatar.cc/400?u=${user.email}`,
+        expression: selectedExpression,
+        style: selectedStyle,
+        selectedProducts,
+        createdAt: new Date(),
       };
 
       if (editingFace) {
-        // Update existing face
         setFaces(prev => prev.map(face => 
-          face.id === editingFace.id ? faceData : face
+          face.id === editingFace.id ? newFace : face
         ));
         toast({
           title: "Success",
           description: "Face updated successfully",
         });
       } else {
-        // Add new face
-        setFaces(prev => [faceData, ...prev]);
+        setFaces(prev => [newFace, ...prev]);
         toast({
           title: "Success",
-          description: "Face added successfully",
+          description: "Face generated successfully",
         });
       }
 
       // Reset form and close dialog
-      form.reset();
-      setPreviewImage(null);
+      setSelectedExpression("neutral");
+      setSelectedStyle("photoshoot");
+      setSelectedProducts([]);
       setEditingFace(null);
       setIsDialogOpen(false);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to save face",
+        description: "Failed to generate face",
         variant: "destructive",
       });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   const handleEdit = (face: Face) => {
     setEditingFace(face);
-    form.reset({
-      name: face.name,
-      description: face.description || "",
-      expression: face.expression,
-      style: face.style,
-      makeup: face.makeup,
-      accessories: face.accessories,
-    });
-    setPreviewImage(face.imageUrl);
+    setSelectedExpression(face.expression);
+    setSelectedStyle(face.style);
+    setSelectedProducts(face.selectedProducts);
     setIsDialogOpen(true);
   };
 
@@ -265,10 +246,111 @@ export default function FaceManagementPage() {
   };
 
   const resetForm = () => {
-    form.reset();
-    setPreviewImage(null);
+    setSelectedExpression("neutral");
+    setSelectedStyle("photoshoot");
+    setSelectedProducts([]);
     setEditingFace(null);
   };
+
+  const handleProductSelect = (productId: string) => {
+    setSelectedProducts(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const SlideShowSelector = ({ 
+    items, 
+    selectedValue, 
+    onSelect, 
+    title 
+  }: {
+    items: Array<{ value: string; label: string; imageUrl: string }>;
+    selectedValue: string;
+    onSelect: (value: string) => void;
+    title: string;
+  }) => (
+    <div className="space-y-3">
+      <h4 className="font-medium">{title}</h4>
+      <div className="flex gap-3 overflow-x-auto pb-2">
+        {items.map((item) => (
+          <div
+            key={item.value}
+            className={`flex-shrink-0 cursor-pointer transition-all ${
+              selectedValue === item.value 
+                ? 'ring-4 ring-primary ring-offset-2' 
+                : 'hover:ring-2 hover:ring-gray-300'
+            }`}
+            onClick={() => onSelect(item.value)}
+          >
+            <div className="w-24 h-24 rounded-lg overflow-hidden">
+              <Image
+                src={item.imageUrl}
+                alt={item.label}
+                width={96}
+                height={96}
+                className="w-full h-full object-cover"
+                unoptimized
+              />
+            </div>
+            <p className="text-xs text-center mt-1 font-medium">{item.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const ProductCategorySelector = ({ 
+    categoryName, 
+    products 
+  }: {
+    categoryName: string;
+    products: UserProduct[];
+  }) => (
+    <div className="space-y-3">
+      <h4 className="font-medium">{categoryName}</h4>
+      <div className="flex gap-3 overflow-x-auto pb-2">
+        {products.length === 0 ? (
+          <div 
+            className="flex-shrink-0 w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
+            onClick={() => router.push(`/shop?category=${categoryName}`)}
+          >
+            <div className="text-center">
+              <Plus className="h-8 w-8 text-gray-400 mx-auto mb-1" />
+              <p className="text-xs text-gray-500">Buy Products</p>
+            </div>
+          </div>
+        ) : (
+          products.map((userProduct) => (
+            <div
+              key={userProduct.product.id}
+              className={`flex-shrink-0 cursor-pointer transition-all ${
+                selectedProducts.includes(userProduct.product.id)
+                  ? 'ring-4 ring-primary ring-offset-2' 
+                  : 'hover:ring-2 hover:ring-gray-300'
+              }`}
+              onClick={() => handleProductSelect(userProduct.product.id)}
+            >
+              <div className="w-24 h-24 rounded-lg overflow-hidden">
+                <Image
+                  src={userProduct.product.imageUrl}
+                  alt={userProduct.product.name}
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-cover"
+                  unoptimized
+                />
+              </div>
+              <p className="text-xs text-center mt-1 font-medium line-clamp-2">
+                {userProduct.product.name}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-8">
@@ -276,7 +358,7 @@ export default function FaceManagementPage() {
         <div className="space-y-2">
           <h2 className="text-2xl font-bold">Face Management</h2>
           <p className="text-muted-foreground">
-            Upload and manage your face images with different styles and expressions
+            Generate and customize your face images with different expressions, styles, and accessories
           </p>
         </div>
         
@@ -287,224 +369,99 @@ export default function FaceManagementPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add New Face
+              Generate New Face
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingFace ? "Edit Face" : "Add New Face"}
+                {editingFace ? "Edit Face" : "Generate New Face"}
               </DialogTitle>
               <DialogDescription>
-                Upload an image and customize the face with different expressions, styles, makeup, and accessories.
+                Customize your face with different expressions, styles, and accessories from your purchased products.
               </DialogDescription>
             </DialogHeader>
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* Image Upload */}
-                <div className="space-y-4">
-                  <Label>Face Image</Label>
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
-                    {previewImage ? (
-                      <div className="space-y-4">
-                        <div className="relative w-full h-48">
-                          <Image
-                            src={previewImage}
-                            alt="Preview"
-                            fill
-                            className="object-cover rounded-lg"
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setPreviewImage(null);
-                            form.setValue("imageFile", undefined);
-                          }}
-                        >
-                          Remove Image
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <div className="space-y-2">
-                          <Label htmlFor="image-upload" className="cursor-pointer">
-                            <span className="text-primary hover:text-primary/80">
-                              Click to upload
-                            </span>
-                            <span className="text-muted-foreground"> or drag and drop</span>
-                          </Label>
-                          <p className="text-xs text-muted-foreground">
-                            PNG, JPG, GIF up to 10MB
-                          </p>
-                        </div>
-                        <input
-                          id="image-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleImageUpload}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Basic Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter face name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="expression"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Expression</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select expression" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {expressions.map((expression) => (
-                              <SelectItem key={expression.value} value={expression.value}>
-                                {expression.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Describe this face image..."
-                          className="resize-none"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+            <div className="space-y-6">
+              {/* Profile Picture Preview */}
+              <div className="text-center">
+                <div className="w-32 h-32 mx-auto rounded-xl overflow-hidden bg-muted border-2 border-border">
+                  {user?.profilePicture ? (
+                    <Image
+                      src={user.profilePicture}
+                      alt={user.name}
+                      width={128}
+                      height={128}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User className="h-16 w-16 text-muted-foreground" />
+                    </div>
                   )}
-                />
-
-                {/* Style Options */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="style"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Style</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select style" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {styles.map((style) => (
-                              <SelectItem key={style.value} value={style.value}>
-                                {style.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="makeup"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Makeup</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select makeup" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {makeupOptions.map((makeup) => (
-                              <SelectItem key={makeup.value} value={makeup.value}>
-                                {makeup.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="accessories"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Accessories</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select accessories" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {accessoryOptions.map((accessory) => (
-                              <SelectItem key={accessory.value} value={accessory.value}>
-                                {accessory.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Generated Name: <span className="font-medium">{generateFaceName()}</span>
+                </p>
+              </div>
 
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isUploading}>
-                    {isUploading ? "Uploading..." : editingFace ? "Update Face" : "Add Face"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+              {/* Expression Selection */}
+              <SlideShowSelector
+                items={expressions}
+                selectedValue={selectedExpression}
+                onSelect={setSelectedExpression}
+                title="Expression"
+              />
+
+              {/* Style Selection */}
+              <SlideShowSelector
+                items={styles}
+                selectedValue={selectedStyle}
+                onSelect={setSelectedStyle}
+                title="Style"
+              />
+
+              {/* Product Categories */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold">Accessories & Products</h3>
+                
+                {Object.entries(productsByCategory).map(([categoryName, products]) => (
+                  <ProductCategorySelector
+                    key={categoryName}
+                    categoryName={categoryName}
+                    products={products}
+                  />
+                ))}
+
+                {/* Show empty state if no products */}
+                {Object.keys(productsByCategory).length === 0 && (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                    <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No Products Purchased</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Purchase products from the shop to customize your faces with accessories and makeup.
+                    </p>
+                    <Button onClick={() => router.push('/shop')}>
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Visit Shop
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleGenerateFace} disabled={isGenerating}>
+                  {isGenerating ? "Generating..." : editingFace ? "Update Face" : "Generate Face"}
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
@@ -513,14 +470,14 @@ export default function FaceManagementPage() {
       {faces.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Upload className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No faces uploaded yet</h3>
+            <User className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No faces generated yet</h3>
             <p className="text-muted-foreground text-center mb-4">
-              Start by uploading your first face image with custom styles and expressions.
+              Generate your first face with different expressions and styles.
             </p>
             <Button onClick={() => setIsDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Your First Face
+              Generate Your First Face
             </Button>
           </CardContent>
         </Card>
@@ -538,12 +495,7 @@ export default function FaceManagementPage() {
               </div>
               <CardContent className="p-4">
                 <div className="space-y-2">
-                  <h3 className="font-semibold">{face.name}</h3>
-                  {face.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {face.description}
-                    </p>
-                  )}
+                  <h3 className="font-semibold line-clamp-1">{face.name}</h3>
                   <div className="flex flex-wrap gap-1">
                     <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
                       {expressions.find(e => e.value === face.expression)?.label}
@@ -551,14 +503,9 @@ export default function FaceManagementPage() {
                     <span className="text-xs bg-secondary/10 text-secondary-foreground px-2 py-1 rounded">
                       {styles.find(s => s.value === face.style)?.label}
                     </span>
-                    {face.makeup !== "none" && (
+                    {face.selectedProducts.length > 0 && (
                       <span className="text-xs bg-accent/10 text-accent-foreground px-2 py-1 rounded">
-                        {makeupOptions.find(m => m.value === face.makeup)?.label}
-                      </span>
-                    )}
-                    {face.accessories !== "none" && (
-                      <span className="text-xs bg-muted/10 text-muted-foreground px-2 py-1 rounded">
-                        {accessoryOptions.find(a => a.value === face.accessories)?.label}
+                        +{face.selectedProducts.length} products
                       </span>
                     )}
                   </div>
