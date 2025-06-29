@@ -9,34 +9,34 @@ import { PlusIcon } from "lucide-react";
 
 const faq = [
   {
-    question: "What is your return policy?",
+    question: "How does the virtual try-on technology work?",
     answer:
-      "You can return unused items in their original packaging within 30 days for a refund or exchange. Contact support for assistance.",
+      "Face Me uses advanced AI to map your facial features and realistically apply virtual accessories, makeup, and styling elements. Simply upload your photo or use our camera feature to see how different items look on you.",
   },
   {
-    question: "How do I track my order?",
+    question: "What types of items can I try on virtually?",
     answer:
-      "Track your order using the link provided in your confirmation email, or log into your account to view tracking details.",
+      "You can try on eyeglasses, sunglasses, hats, earrings, lipstick, makeup looks, and various fashion accessories. We're constantly adding new categories and products to our virtual try-on library.",
   },
   {
-    question: "Do you ship internationally?",
+    question: "How do credits work in Face Me?",
     answer:
-      "Yes, we ship worldwide. Shipping fees and delivery times vary by location, and customs duties may apply for some countries.",
+      "Credits are used to generate AI-styled faces, view larger images, and access premium features. You earn credits when others view and like your creations, and you can purchase additional credits through our packages.",
   },
   {
-    question: "What payment methods do you accept?",
+    question: "Can I monetize my face styles?",
     answer:
-      "We accept Visa, MasterCard, American Express, PayPal, Apple Pay, and Google Pay, ensuring secure payment options for all customers.",
+      "Yes! When other users view and interact with your styled faces, you earn credits. Popular creators can build a following and earn substantial credits from their creative content.",
   },
   {
-    question: "What if I receive a damaged item?",
+    question: "Is my face data secure and private?",
     answer:
-      "Please contact our support team within 48 hours of delivery with photos of the damaged item. We’ll arrange a replacement or refund.",
+      "Absolutely. We take privacy seriously. Your face data is encrypted, never shared with third parties, and you have full control over what you share publicly. You can delete your data anytime.",
   },
   {
-    question: "How can I contact customer support?",
+    question: "Can I shop for the items I try on?",
     answer:
-      "You can reach our support team via email at support@example.com or through the live chat on our website. We're available 24/7 to assist you.",
+      "Yes! Our integrated shop lets you purchase the actual products you've tried on virtually. We partner with trusted retailers to ensure you get authentic items that match your virtual try-on experience.",
   },
 ];
 
@@ -47,7 +47,7 @@ const FAQ = () => {
         Frequently Asked Questions
       </h2>
       <p className="mt-1.5 md:text-center xs:text-lg text-muted-foreground">
-        Quick answers to common questions about our products and services.
+        Everything you need to know about Face Me's virtual styling platform.
       </p>
 
       <div className="min-h-[550px] md:min-h-[320px] xl:min-h-[300px]">

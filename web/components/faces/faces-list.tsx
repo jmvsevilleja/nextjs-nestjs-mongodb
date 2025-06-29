@@ -11,6 +11,8 @@ import { Eye, Heart, Loader2, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
 import { Face } from "@/app/faces/page";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type FacesListProps = {
   displayedFaces: Face[];
@@ -32,25 +34,30 @@ export function FacesList({
   userProducts = [],
 }: FacesListProps) {
   const [expandedFaces, setExpandedFaces] = useState<Set<string>>(new Set());
+  const { data: session } = useSession();
+  const router = useRouter();
 
   // Helper function to get product name by ID
   const getProductName = (productId: string) => {
-    const userProduct = userProducts.find(up => up.product.id === productId);
+    const userProduct = userProducts.find((up) => up.product.id === productId);
     return userProduct?.product.name || productId;
   };
 
   // Helper function to parse face name into username
   const parseUsername = (faceName: string) => {
-    return faceName.split('-')[0] || 'user';
+    return faceName.split("-")[0] || "user";
   };
 
   // Helper function to render tags for a face
   const renderFaceTags = (face: Face, isExpanded: boolean = false) => {
     const tags = [];
-    
+
     // 1. Username tag (blue)
     tags.push(
-      <Badge key="username" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs">
+      <Badge
+        key="username"
+        className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs"
+      >
         {parseUsername(face.name)}
       </Badge>
     );
@@ -58,7 +65,10 @@ export function FacesList({
     // 2. Expression tag (green)
     if (face.expression) {
       tags.push(
-        <Badge key="expression" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 text-xs">
+        <Badge
+          key="expression"
+          className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 text-xs"
+        >
           {face.expression}
         </Badge>
       );
@@ -67,20 +77,29 @@ export function FacesList({
     // 3. Style tag (purple)
     if (face.style) {
       tags.push(
-        <Badge key="style" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 text-xs">
+        <Badge
+          key="style"
+          className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 text-xs"
+        >
           {face.style}
         </Badge>
       );
     }
 
     // 4. Products used tags (orange) - limit to 2 if not expanded
-    if (face.productsUsed && face.productsUsed.length > 0) {
-      const productsToShow = isExpanded ? face.productsUsed : face.productsUsed.slice(0, 2);
-      
+    // Only show if user is authenticated and has products data
+    if (session && face.productsUsed && face.productsUsed.length > 0) {
+      const productsToShow = isExpanded
+        ? face.productsUsed
+        : face.productsUsed.slice(0, 2);
+
       productsToShow.forEach((productId, index) => {
         const productName = getProductName(productId);
         tags.push(
-          <Badge key={`product-${index}`} className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300 text-xs">
+          <Badge
+            key={`product-${index}`}
+            className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300 text-xs"
+          >
             {productName}
           </Badge>
         );
@@ -89,12 +108,12 @@ export function FacesList({
       // Add "..." badge if there are more products and not expanded
       if (!isExpanded && face.productsUsed.length > 2) {
         tags.push(
-          <Badge 
-            key="more" 
+          <Badge
+            key="more"
             className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300 text-xs cursor-pointer hover:bg-gray-200"
             onClick={(e) => {
               e.stopPropagation();
-              setExpandedFaces(prev => new Set([...prev, face.id]));
+              setExpandedFaces((prev) => new Set([...prev, face.id]));
             }}
           >
             <MoreHorizontal className="h-3 w-3" />
@@ -108,7 +127,7 @@ export function FacesList({
 
   const toggleExpanded = (faceId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setExpandedFaces(prev => {
+    setExpandedFaces((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(faceId)) {
         newSet.delete(faceId);
@@ -117,6 +136,16 @@ export function FacesList({
       }
       return newSet;
     });
+  };
+
+  const handleLikeClick = (face: Face, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Check if user is authenticated before allowing like
+    if (!session) {
+      router.push("/signin");
+      return;
+    }
+    handleLike(face, e);
   };
 
   return (
@@ -152,11 +181,13 @@ export function FacesList({
                   <div className="flex flex-wrap gap-1 mb-3">
                     {renderFaceTags(face, isExpanded)}
                   </div>
-                  
+
                   <div className="text-xs text-gray-500 dark:text-gray-400">
                     <p>
                       Created:{" "}
-                      {face.createdAt ? new Date(face.createdAt).toLocaleDateString() : ""}
+                      {face.createdAt
+                        ? new Date(face.createdAt).toLocaleDateString()
+                        : ""}
                     </p>
                   </div>
                   <div className="mt-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
@@ -174,14 +205,19 @@ export function FacesList({
                   <Button
                     variant={face.isLiked ? "default" : "outline"}
                     className="w-full"
-                    onClick={(e) => handleLike(face, e)}
+                    onClick={(e) => handleLikeClick(face, e)}
+                    disabled={!session}
                   >
                     <Heart
                       className={`h-4 w-4 mr-2 ${
                         face.isLiked ? "fill-current" : ""
                       }`}
                     />
-                    {face.isLiked ? "Liked" : "Like"}
+                    {!session
+                      ? "Sign in to Like"
+                      : face.isLiked
+                      ? "Liked"
+                      : "Like"}
                   </Button>
                 </CardFooter>
               </Card>

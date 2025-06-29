@@ -43,14 +43,16 @@ export default function PeoplePage() {
   // State for pagination and filtering
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"totalViews" | "totalLikes" | "totalFaces" | "createdAt">("totalViews");
+  const [sortBy, setSortBy] = useState<
+    "totalViews" | "totalLikes" | "totalFaces" | "createdAt"
+  >("totalViews");
   const [sortOrder] = useState<"asc" | "desc">("desc");
   const [allUsers, setAllUsers] = useState<UserStats[]>([]);
   const [displayedUsers, setDisplayedUsers] = useState<UserStats[]>([]);
   const [hasMoreUsers, setHasMoreUsers] = useState(true);
   const [isLoadingMore] = useState(false);
 
-  // Fetch users with pagination
+  // Fetch users with pagination - no authentication required
   const { loading } = useQuery(GET_ALL_USERS, {
     variables: {
       input: {
@@ -128,7 +130,9 @@ export default function PeoplePage() {
     setSearchTerm(event.target.value);
   };
 
-  const handleSortByChange = (value: "totalViews" | "totalLikes" | "totalFaces" | "createdAt") => {
+  const handleSortByChange = (
+    value: "totalViews" | "totalLikes" | "totalFaces" | "createdAt"
+  ) => {
     setSortBy(value);
   };
 
@@ -136,7 +140,9 @@ export default function PeoplePage() {
     router.push(`/people/${user.id}`);
   };
 
-  const getButtonClass = (value: "totalViews" | "totalLikes" | "totalFaces" | "createdAt") => {
+  const getButtonClass = (
+    value: "totalViews" | "totalLikes" | "totalFaces" | "createdAt"
+  ) => {
     return `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
       sortBy === value
         ? "bg-primary text-primary-foreground"

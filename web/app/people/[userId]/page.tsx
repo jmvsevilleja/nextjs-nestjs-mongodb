@@ -8,13 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Eye, Heart, User, Calendar, MoreHorizontal } from "lucide-react";
+import {
+  ArrowLeft,
+  Eye,
+  Heart,
+  User,
+  Calendar,
+  MoreHorizontal,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/home/footer";
 import { Face } from "@/app/faces/page";
 import { format } from "date-fns";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 const GET_USER_PROFILE = gql`
   query GetUserProfile($id: ID!) {
@@ -85,12 +93,15 @@ interface UserProfile {
 export default function UserProfilePage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session, status } = useSession(); // Remove authentication requirement
   const userId = params.userId as string;
 
   // State for faces and UI
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"createdAt" | "views" | "likes">("views");
+  const [sortBy, setSortBy] = useState<"createdAt" | "views" | "likes">(
+    "views"
+  );
   const [sortOrder] = useState<"asc" | "desc">("desc");
   const [allFaces, setAllFaces] = useState<Face[]>([]);
   const [displayedFaces, setDisplayedFaces] = useState<Face[]>([]);
@@ -98,12 +109,20 @@ export default function UserProfilePage() {
   const [isLoadingMore] = useState(false);
   const [expandedFaces, setExpandedFaces] = useState<Set<string>>(new Set());
 
-  // Fetch user profile
-  const { data: userProfileData, loading: userLoading } = useQuery(GET_USER_PROFILE, {
-    variables: { id: userId },
-  });
+  if (status === "unauthenticated") {
+    router.push("/signin");
+    return null;
+  }
 
-  // Fetch user's faces
+  // Fetch user profile - no authentication required
+  const { data: userProfileData, loading: userLoading } = useQuery(
+    GET_USER_PROFILE,
+    {
+      variables: { id: userId },
+    }
+  );
+
+  // Fetch user's faces - no authentication required
   const { loading: facesLoading } = useQuery(GET_USER_FACES, {
     variables: {
       input: {
@@ -131,8 +150,10 @@ export default function UserProfilePage() {
     },
   });
 
-  // Fetch user products for tag display
-  const { data: productsData } = useQuery(GET_USER_PRODUCTS);
+  // Fetch user products for tag display - only if authenticated
+  const { data: productsData } = useQuery(GET_USER_PRODUCTS, {
+    skip: !session, // Skip if not authenticated
+  });
 
   // Handle loading more faces
   const loadMoreFaces = () => {
@@ -196,6 +217,11 @@ export default function UserProfilePage() {
 
   const handleLike = (face: Face, event: React.MouseEvent) => {
     event.stopPropagation();
+    // Check if user is authenticated before allowing like
+    if (!session) {
+      router.push("/signin");
+      return;
+    }
     // This would be implemented similar to the faces page
     console.log("Like face:", face.id);
   };
@@ -212,20 +238,23 @@ export default function UserProfilePage() {
   const userProducts = productsData?.userProducts || [];
 
   const getProductName = (productId: string) => {
-    const userProduct = userProducts.find(up => up.product.id === productId);
+    const userProduct = userProducts.find((up) => up.product.id === productId);
     return userProduct?.product.name || productId;
   };
 
   const parseUsername = (faceName: string) => {
-    return faceName.split('-')[0] || 'user';
+    return faceName.split("-")[0] || "user";
   };
 
   const renderFaceTags = (face: Face, isExpanded: boolean = false) => {
     const tags = [];
-    
+
     // 1. Username tag (blue)
     tags.push(
-      <Badge key="username" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs">
+      <Badge
+        key="username"
+        className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs"
+      >
         {parseUsername(face.name)}
       </Badge>
     );
@@ -233,7 +262,10 @@ export default function UserProfilePage() {
     // 2. Expression tag (green)
     if (face.expression) {
       tags.push(
-        <Badge key="expression" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 text-xs">
+        <Badge
+          key="expression"
+          className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 text-xs"
+        >
           {face.expression}
         </Badge>
       );
@@ -242,20 +274,29 @@ export default function UserProfilePage() {
     // 3. Style tag (purple)
     if (face.style) {
       tags.push(
-        <Badge key="style" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 text-xs">
+        <Badge
+          key="style"
+          className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 text-xs"
+        >
           {face.style}
         </Badge>
       );
     }
 
     // 4. Products used tags (orange) - limit to 2 if not expanded
-    if (face.productsUsed && face.productsUsed.length > 0) {
-      const productsToShow = isExpanded ? face.productsUsed : face.productsUsed.slice(0, 2);
-      
+    // Only show if user is authenticated and has products data
+    if (session && face.productsUsed && face.productsUsed.length > 0) {
+      const productsToShow = isExpanded
+        ? face.productsUsed
+        : face.productsUsed.slice(0, 2);
+
       productsToShow.forEach((productId, index) => {
         const productName = getProductName(productId);
         tags.push(
-          <Badge key={`product-${index}`} className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300 text-xs">
+          <Badge
+            key={`product-${index}`}
+            className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300 text-xs"
+          >
             {productName}
           </Badge>
         );
@@ -264,12 +305,12 @@ export default function UserProfilePage() {
       // Add "..." badge if there are more products and not expanded
       if (!isExpanded && face.productsUsed.length > 2) {
         tags.push(
-          <Badge 
-            key="more" 
+          <Badge
+            key="more"
             className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300 text-xs cursor-pointer hover:bg-gray-200"
             onClick={(e) => {
               e.stopPropagation();
-              setExpandedFaces(prev => new Set([...prev, face.id]));
+              setExpandedFaces((prev) => new Set([...prev, face.id]));
             }}
           >
             <MoreHorizontal className="h-3 w-3" />
@@ -293,16 +334,22 @@ export default function UserProfilePage() {
 
   if (!userProfile) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">User not found</h1>
-          <p className="text-muted-foreground">The user you're looking for doesn't exist.</p>
-          <Button onClick={() => router.push("/people")} className="mt-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to People
-          </Button>
+      <>
+        <Navbar />
+        <div className="flex h-screen items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">User not found</h1>
+            <p className="text-muted-foreground">
+              The user you're looking for doesn't exist.
+            </p>
+            <Button onClick={() => router.push("/people")} className="mt-4">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to People
+            </Button>
+          </div>
         </div>
-      </div>
+        <Footer />
+      </>
     );
   }
 
@@ -350,7 +397,8 @@ export default function UserProfilePage() {
                 <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>
-                    Joined {format(new Date(userProfile.createdAt), "MMMM yyyy")}
+                    Joined{" "}
+                    {format(new Date(userProfile.createdAt), "MMMM yyyy")}
                   </span>
                 </div>
               </div>
@@ -413,10 +461,39 @@ export default function UserProfilePage() {
           </div>
         </div>
 
+        {/* Authentication Notice for Non-Authenticated Users */}
+        {!session && (
+          <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    Sign in to interact with faces
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    You can view all faces, but you'll need to sign in to like
+                    faces or view larger images.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => router.push("/signin")}
+                  className="ml-auto"
+                >
+                  Sign In
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Faces Grid with Tags */}
         <section className="mb-8 md:mb-10">
           <h2 className="mb-4 text-xl font-semibold md:mb-6 md:text-2xl">
-            {searchTerm ? `Results for "${searchTerm}"` : `${userProfile.name}'s Faces`}
+            {searchTerm
+              ? `Results for "${searchTerm}"`
+              : `${userProfile.name}'s Faces`}
           </h2>
           {displayedFaces.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
@@ -446,11 +523,13 @@ export default function UserProfilePage() {
                       <div className="flex flex-wrap gap-1 mb-3">
                         {renderFaceTags(face, isExpanded)}
                       </div>
-                      
+
                       <div className="text-xs text-gray-500 dark:text-gray-400">
                         <p>
                           Created:{" "}
-                          {face.createdAt ? new Date(face.createdAt).toLocaleDateString() : ""}
+                          {face.createdAt
+                            ? new Date(face.createdAt).toLocaleDateString()
+                            : ""}
                         </p>
                       </div>
                       <div className="mt-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
@@ -488,7 +567,8 @@ export default function UserProfilePage() {
           {!hasMoreFaces && displayedFaces.length > 0 && (
             <div className="text-center mt-8">
               <p className="text-muted-foreground">
-                You&apos;ve reached the end of {userProfile.name}&apos;s face gallery!
+                You&apos;ve reached the end of {userProfile.name}&apos;s face
+                gallery!
               </p>
             </div>
           )}

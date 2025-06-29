@@ -15,67 +15,66 @@ import { useEffect, useState } from "react";
 const testimonials = [
   {
     id: 1,
-    name: "John Doe",
-    designation: "Software Engineer",
-    company: "TechCorp",
+    name: "Sarah Chen",
+    designation: "Fashion Blogger",
+    company: "StyleDaily",
     testimonial:
-      "This product has completely transformed the way we work. The efficiency and ease of use are unmatched! " +
-      "We were struggling with productivity before, but this tool has streamlined our entire process. ",
-    avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+      "Face Me completely changed how I shop for accessories! I can finally see how glasses and earrings look on me before buying. " +
+      "The AI styling is incredibly realistic, and I love sharing my looks with the community.",
+    avatar: "https://randomuser.me/api/portraits/women/1.jpg",
   },
   {
     id: 2,
-    name: "Jane Smith",
-    designation: "Product Manager",
-    company: "InnovateX",
+    name: "Marcus Johnson",
+    designation: "Content Creator",
+    company: "TechReviews",
     testimonial:
-      "An amazing tool that simplifies complex tasks. Highly recommended for professionals in the industry. " +
-      "The intuitive interface makes it easy to onboard new team members, and the automation features save us countless hours every week. ",
-    avatar: "https://randomuser.me/api/portraits/women/2.jpg",
+      "As someone who reviews fashion tech, Face Me impressed me with its accuracy. The virtual try-on for eyewear is spot-on, " +
+      "and the monetization feature lets me earn from my creative content. It's like Instagram meets virtual shopping.",
+    avatar: "https://randomuser.me/api/portraits/men/2.jpg",
   },
   {
     id: 3,
-    name: "Michael Johnson",
-    designation: "UX Designer",
-    company: "DesignPro",
+    name: "Emma Rodriguez",
+    designation: "Makeup Artist",
+    company: "Freelance",
     testimonial:
-      "The user experience is top-notch! The interface is clean, intuitive, and easy to navigate. " +
-      "As a designer, I appreciate the attention to detail and well-thought-out UI components. " +
-      "It makes designing and prototyping so much more efficient.",
-    avatar: "https://randomuser.me/api/portraits/men/3.jpg",
+      "The lipstick and makeup try-on feature is a game-changer for my clients. I can show them different looks virtually " +
+      "before applying anything. Face Me has become an essential tool in my professional kit.",
+    avatar: "https://randomuser.me/api/portraits/women/3.jpg",
   },
   {
     id: 4,
-    name: "Emily Davis",
-    designation: "Marketing Specialist",
-    company: "BrandBoost",
+    name: "David Kim",
+    designation: "Online Shopper",
+    company: "Tech Enthusiast",
     testimonial:
-      "I've seen a significant improvement in our team's productivity since we started using this service. " +
-      "The ability to track performance, analyze data, and collaborate across teams has been a game-changer.",
-    avatar: "https://randomuser.me/api/portraits/women/4.jpg",
+      "I was always hesitant to buy glasses online, but Face Me solved that problem. The virtual try-on is so realistic " +
+      "that I now confidently shop for eyewear online. Plus, the community aspect makes it fun to discover new styles.",
+    avatar: "https://randomuser.me/api/portraits/men/4.jpg",
   },
   {
     id: 5,
-    name: "Daniel Martinez",
-    designation: "Full-Stack Developer",
-    company: "CodeCrafters",
+    name: "Lisa Thompson",
+    designation: "Style Influencer",
+    company: "FashionForward",
     testimonial:
-      "The best investment we've made! The support team is also super responsive and helpful. " +
-      "As a developer, I appreciate the well-documented API, the flexibility of integrations, and the robust security features.",
-    avatar: "https://randomuser.me/api/portraits/men/5.jpg",
+      "Face Me turned my passion for styling into actual earnings! My followers love seeing my virtual looks, " +
+      "and I earn credits from their engagement. It's the perfect platform for style enthusiasts like me.",
+    avatar: "https://randomuser.me/api/portraits/women/5.jpg",
   },
   {
     id: 6,
-    name: "Sophia Lee",
-    designation: "Data Analyst",
-    company: "InsightTech",
+    name: "Alex Rivera",
+    designation: "Fashion Student",
+    company: "Design Institute",
     testimonial:
-      "This tool has saved me hours of work! The analytics and reporting features are incredibly powerful. " +
-      "I can now generate detailed reports in minutes, which previously took days to compile. " +
-      "helping us make smarter, data-backed decisions.",
-    avatar: "https://randomuser.me/api/portraits/women/6.jpg",
+      "As a fashion student, Face Me helps me experiment with different styling concepts without any cost. " +
+      "The AI technology is fascinating, and I use it to create mood boards and test accessory combinations for my projects.",
+    avatar: "https://randomuser.me/api/portraits/men/6.jpg",
   },
 ];
+
 const Testimonial = () => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -100,7 +99,7 @@ const Testimonial = () => {
       className="w-full max-w-screen-xl mx-auto py-6 xs:py-12 px-6"
     >
       <h2 className="mb-8 xs:mb-14 text-4xl md:text-5xl font-bold text-center tracking-tight">
-        Testimonials
+        What Our Style Community Says
       </h2>
       <div className="container w-full mx-auto">
         <Carousel setApi={setApi}>
@@ -135,13 +134,16 @@ const TestimonialCard = ({
 }) => (
   <div className="mb-8 bg-accent rounded-xl py-8 px-6 sm:py-6">
     <div className="flex items-center justify-between gap-20">
-      <div className="hidden lg:block relative shrink-0 aspect-[3/4] max-w-[18rem] w-full bg-muted-foreground/20 rounded-xl">
-        <Image
-          src="/placeholder.svg"
-          fill
-          alt=""
-          className="object-cover rounded-xl"
-        />
+      <div className="hidden lg:block relative shrink-0 aspect-[3/4] max-w-[18rem] w-full bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-xl">
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="text-4xl">👤</div>
+            <div className="text-lg font-bold text-primary">Face Me</div>
+            <div className="text-xs text-muted-foreground px-4">
+              Virtual Try-On Platform
+            </div>
+          </div>
+        </div>
 
         <div className="absolute top-1/4 right-0 translate-x-1/2 h-12 w-12 bg-primary rounded-full flex items-center justify-center">
           <svg
@@ -181,7 +183,7 @@ const TestimonialCard = ({
           </div>
         </div>
         <p className="mt-6 text-lg sm:text-2xl lg:text-[1.75rem] xl:text-3xl leading-normal lg:!leading-normal font-semibold tracking-tight">
-          &quot;{testimonial.testimonial}&quot;
+          "{testimonial.testimonial}"
         </p>
         <div className="flex sm:hidden md:flex mt-6 items-center gap-4">
           <Avatar>

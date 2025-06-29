@@ -5,12 +5,7 @@ import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, User, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -82,21 +77,81 @@ const UPDATE_FACE = gql`
 `;
 
 const expressions = [
-  { value: "neutral", label: "Neutral", imageUrl: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg" },
-  { value: "smiling", label: "Smiling", imageUrl: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg" },
-  { value: "happy", label: "Happy", imageUrl: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg" },
-  { value: "surprised", label: "Surprised", imageUrl: "https://images.pexels.com/photos/1040881/pexels-photo-1040881.jpeg" },
-  { value: "winking", label: "Winking", imageUrl: "https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg" },
-  { value: "laughing", label: "Laughing", imageUrl: "https://images.pexels.com/photos/1043473/pexels-photo-1043473.jpeg" },
+  {
+    value: "neutral",
+    label: "Neutral",
+    imageUrl:
+      "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
+  },
+  {
+    value: "smiling",
+    label: "Smiling",
+    imageUrl:
+      "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg",
+  },
+  {
+    value: "happy",
+    label: "Happy",
+    imageUrl:
+      "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg",
+  },
+  {
+    value: "surprised",
+    label: "Surprised",
+    imageUrl:
+      "https://images.pexels.com/photos/1040881/pexels-photo-1040881.jpeg",
+  },
+  {
+    value: "winking",
+    label: "Winking",
+    imageUrl:
+      "https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg",
+  },
+  {
+    value: "laughing",
+    label: "Laughing",
+    imageUrl:
+      "https://images.pexels.com/photos/1043473/pexels-photo-1043473.jpeg",
+  },
 ];
 
 const styles = [
-  { value: "photoshoot", label: "Photoshoot", imageUrl: "https://images.pexels.com/photos/1040881/pexels-photo-1040881.jpeg" },
-  { value: "portrait", label: "Portrait", imageUrl: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg" },
-  { value: "casual", label: "Casual", imageUrl: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg" },
-  { value: "professional", label: "Professional", imageUrl: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg" },
-  { value: "artistic", label: "Artistic", imageUrl: "https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg" },
-  { value: "vintage", label: "Vintage", imageUrl: "https://images.pexels.com/photos/1043473/pexels-photo-1043473.jpeg" },
+  {
+    value: "photoshoot",
+    label: "Photoshoot",
+    imageUrl:
+      "https://images.pexels.com/photos/1040881/pexels-photo-1040881.jpeg",
+  },
+  {
+    value: "painting",
+    label: "Painting",
+    imageUrl:
+      "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
+  },
+  {
+    value: "casual",
+    label: "Casual",
+    imageUrl:
+      "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg",
+  },
+  {
+    value: "professional",
+    label: "Professional",
+    imageUrl:
+      "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg",
+  },
+  {
+    value: "artistic",
+    label: "Artistic",
+    imageUrl:
+      "https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg",
+  },
+  {
+    value: "vintage",
+    label: "Vintage",
+    imageUrl:
+      "https://images.pexels.com/photos/1043473/pexels-photo-1043473.jpeg",
+  },
 ];
 
 interface UserProduct {
@@ -175,18 +230,21 @@ export default function EditFacePage() {
   }, [face]);
 
   // Group products by parent category
-  const productsByCategory: ProductsByCategory = userProducts.reduce((acc, userProduct) => {
-    const categoryName = userProduct.product.category.parentCategory.name;
-    if (!acc[categoryName]) {
-      acc[categoryName] = [];
-    }
-    acc[categoryName].push(userProduct);
-    return acc;
-  }, {} as ProductsByCategory);
+  const productsByCategory: ProductsByCategory = userProducts.reduce(
+    (acc, userProduct) => {
+      const categoryName = userProduct.product.category.parentCategory.name;
+      if (!acc[categoryName]) {
+        acc[categoryName] = [];
+      }
+      acc[categoryName].push(userProduct);
+      return acc;
+    },
+    {} as ProductsByCategory
+  );
 
   const generateFaceName = () => {
-    if (!user) return '';
-    const username = user.name.toLowerCase().replace(/\s+/g, '_');
+    if (!user) return "";
+    const username = user.name.toLowerCase().replace(/\s+/g, "_");
     return `${username}-${selectedExpression}-${selectedStyle}`;
   };
 
@@ -203,14 +261,24 @@ export default function EditFacePage() {
             name: generateFaceName(),
             expression: selectedExpression,
             style: selectedStyle,
-            makeup: selectedProducts.filter(id => {
-              const product = userProducts.find(up => up.product.id === id);
-              return product?.product.category.parentCategory.name === "Makeup & Face Art";
-            }).join(','),
-            accessories: selectedProducts.filter(id => {
-              const product = userProducts.find(up => up.product.id === id);
-              return product?.product.category.parentCategory.name !== "Makeup & Face Art";
-            }).join(','),
+            makeup: selectedProducts
+              .filter((id) => {
+                const product = userProducts.find((up) => up.product.id === id);
+                return (
+                  product?.product.category.parentCategory.name ===
+                  "Makeup & Face Art"
+                );
+              })
+              .join(","),
+            accessories: selectedProducts
+              .filter((id) => {
+                const product = userProducts.find((up) => up.product.id === id);
+                return (
+                  product?.product.category.parentCategory.name !==
+                  "Makeup & Face Art"
+                );
+              })
+              .join(","),
             productsUsed: selectedProducts,
           },
         },
@@ -223,18 +291,18 @@ export default function EditFacePage() {
   };
 
   const handleProductSelect = (productId: string) => {
-    setSelectedProducts(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
+    setSelectedProducts((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
         : [...prev, productId]
     );
   };
 
-  const SlideShowSelector = ({ 
-    items, 
-    selectedValue, 
-    onSelect, 
-    title 
+  const SlideShowSelector = ({
+    items,
+    selectedValue,
+    onSelect,
+    title,
   }: {
     items: Array<{ value: string; label: string; imageUrl: string }>;
     selectedValue: string;
@@ -248,9 +316,9 @@ export default function EditFacePage() {
           <div
             key={item.value}
             className={`flex-shrink-0 cursor-pointer transition-all ${
-              selectedValue === item.value 
-                ? 'ring-4 ring-primary ring-offset-2' 
-                : 'hover:ring-2 hover:ring-gray-300'
+              selectedValue === item.value
+                ? "ring-4 ring-primary ring-offset-2"
+                : "hover:ring-2 hover:ring-gray-300"
             }`}
             onClick={() => onSelect(item.value)}
           >
@@ -271,9 +339,9 @@ export default function EditFacePage() {
     </div>
   );
 
-  const ProductCategorySelector = ({ 
-    categoryName, 
-    products 
+  const ProductCategorySelector = ({
+    categoryName,
+    products,
   }: {
     categoryName: string;
     products: UserProduct[];
@@ -282,7 +350,7 @@ export default function EditFacePage() {
       <h4 className="font-medium">{categoryName}</h4>
       <div className="flex gap-3 overflow-x-auto pb-2">
         {products.length === 0 ? (
-          <div 
+          <div
             className="flex-shrink-0 w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
             onClick={() => router.push(`/shop?category=${categoryName}`)}
           >
@@ -297,8 +365,8 @@ export default function EditFacePage() {
               key={userProduct.product.id}
               className={`flex-shrink-0 cursor-pointer transition-all ${
                 selectedProducts.includes(userProduct.product.id)
-                  ? 'ring-4 ring-primary ring-offset-2' 
-                  : 'hover:ring-2 hover:ring-gray-300'
+                  ? "ring-4 ring-primary ring-offset-2"
+                  : "hover:ring-2 hover:ring-gray-300"
               }`}
               onClick={() => handleProductSelect(userProduct.product.id)}
             >
@@ -334,7 +402,9 @@ export default function EditFacePage() {
     return (
       <div className="text-center py-8">
         <h2 className="text-2xl font-bold mb-2">Face not found</h2>
-        <p className="text-muted-foreground mb-4">The face you're looking for doesn't exist.</p>
+        <p className="text-muted-foreground mb-4">
+          The face you're looking for doesn't exist.
+        </p>
         <Button onClick={() => router.push("/profile/faces")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Faces
@@ -346,10 +416,7 @@ export default function EditFacePage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          onClick={() => router.push("/profile/faces")}
-        >
+        <Button variant="outline" onClick={() => router.push("/profile/faces")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Faces
         </Button>
@@ -391,21 +458,32 @@ export default function EditFacePage() {
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <p>Views: {face.views}</p>
                   <p>Likes: {face.likes}</p>
-                  <p>Created: {new Date(face.createdAt).toLocaleDateString()}</p>
+                  <p>
+                    Created: {new Date(face.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <p className="text-sm font-medium">Selected Options:</p>
                 <div className="space-y-1 text-sm text-muted-foreground">
-                  <p>Expression: {expressions.find(e => e.value === selectedExpression)?.label}</p>
-                  <p>Style: {styles.find(s => s.value === selectedStyle)?.label}</p>
+                  <p>
+                    Expression:{" "}
+                    {
+                      expressions.find((e) => e.value === selectedExpression)
+                        ?.label
+                    }
+                  </p>
+                  <p>
+                    Style:{" "}
+                    {styles.find((s) => s.value === selectedStyle)?.label}
+                  </p>
                   <p>Products: {selectedProducts.length} selected</p>
                 </div>
               </div>
 
-              <Button 
-                onClick={handleUpdateFace} 
+              <Button
+                onClick={handleUpdateFace}
                 disabled={isUpdating}
                 className="w-full"
               >
@@ -450,22 +528,27 @@ export default function EditFacePage() {
               <CardTitle>Accessories & Products</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {Object.entries(productsByCategory).map(([categoryName, products]) => (
-                <ProductCategorySelector
-                  key={categoryName}
-                  categoryName={categoryName}
-                  products={products}
-                />
-              ))}
+              {Object.entries(productsByCategory).map(
+                ([categoryName, products]) => (
+                  <ProductCategorySelector
+                    key={categoryName}
+                    categoryName={categoryName}
+                    products={products}
+                  />
+                )
+              )}
 
               {Object.keys(productsByCategory).length === 0 && (
                 <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                   <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No Products Purchased</h3>
+                  <h3 className="text-lg font-medium mb-2">
+                    No Products Purchased
+                  </h3>
                   <p className="text-muted-foreground mb-4">
-                    Purchase products from the shop to customize your faces with accessories and makeup.
+                    Purchase products from the shop to customize your faces with
+                    accessories and makeup.
                   </p>
-                  <Button onClick={() => router.push('/shop')}>
+                  <Button onClick={() => router.push("/shop")}>
                     <ShoppingCart className="h-4 w-4 mr-2" />
                     Visit Shop
                   </Button>

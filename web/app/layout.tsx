@@ -12,9 +12,9 @@ const fontSans = FontSans({
 });
 
 export const metadata = {
-  title: "Face App",
+  title: "Face Me - AI-Powered Virtual Try-On Platform",
   description:
-    "A face app for viewing and liking AI generated faces of a real person",
+    "See how you'd actually look wearing eyeglasses, lipstick, hats, or earrings before you buy. Create stunning AI-generated looks, share them with the community, and monetize your style with Face Me.",
 };
 
 export default function RootLayout({
