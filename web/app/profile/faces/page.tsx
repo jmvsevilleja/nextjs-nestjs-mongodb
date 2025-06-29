@@ -140,7 +140,7 @@ export default function FaceManagementPage() {
         </Button>
       </div>
 
-      {/* Faces Grid */}
+      {/* Faces Grid - Updated to 4 columns */}
       {faces.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
@@ -156,7 +156,7 @@ export default function FaceManagementPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {faces.map((face) => (
             <Card key={face.id} className="overflow-hidden">
               <div className="relative aspect-square">
