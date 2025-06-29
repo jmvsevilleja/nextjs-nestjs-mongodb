@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, User, Wallet, Users, ListTodo, UserCheck } from "lucide-react";
+import { Home, User, Wallet, Users, ShoppingBag, UserCheck } from "lucide-react";
 
 export function Navigation() {
   const pathname = usePathname();
@@ -25,9 +25,9 @@ export function Navigation() {
       icon: UserCheck,
     },
     {
-      href: "/todo",
-      label: "Todos",
-      icon: ListTodo,
+      href: "/shop",
+      label: "Shop",
+      icon: ShoppingBag,
     },
     {
       href: "/profile",
@@ -48,7 +48,8 @@ export function Navigation() {
         const isActive =
           pathname === item.href ||
           (item.href === "/dashboard" && pathname === "/dashboard") ||
-          (item.href === "/people" && pathname.startsWith("/people"));
+          (item.href === "/people" && pathname.startsWith("/people")) ||
+          (item.href === "/shop" && pathname.startsWith("/shop"));
 
         return (
           <Link

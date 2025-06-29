@@ -3,44 +3,44 @@
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { User, Image, Settings, ShoppingBag } from "lucide-react";
+import { BarChart3, Package, Users, CreditCard } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/home/footer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const sidebarItems = [
+const adminItems = [
   {
-    href: "/profile",
-    label: "Profile",
-    icon: User,
-    value: "profile",
+    href: "/admin",
+    label: "Dashboard",
+    icon: BarChart3,
+    value: "dashboard",
   },
   {
-    href: "/profile/faces",
-    label: "Face Management",
-    icon: Image,
-    value: "faces",
-  },
-  {
-    href: "/profile/products",
-    label: "My Products",
-    icon: ShoppingBag,
+    href: "/admin/products",
+    label: "Products",
+    icon: Package,
     value: "products",
   },
   {
-    href: "/profile/settings",
-    label: "Settings",
-    icon: Settings,
-    value: "settings",
+    href: "/admin/users",
+    label: "Users",
+    icon: Users,
+    value: "users",
+  },
+  {
+    href: "/admin/transactions",
+    label: "Transactions",
+    icon: CreditCard,
+    value: "transactions",
   },
 ];
 
-export default function ProfileLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -53,36 +53,48 @@ export default function ProfileLayout({
   }
 
   if (status === "unauthenticated") {
-    router.push("/signin");
+    router.push("/admin/login");
     return null;
+  }
+
+  // Check if user is admin (this should be validated on the backend)
+  if (session?.user?.email !== "admin@example.com") {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-destructive">Access Denied</h1>
+          <p className="text-muted-foreground">You don't have permission to access this page.</p>
+        </div>
+      </div>
+    );
   }
 
   // Determine current tab value based on pathname
   const getCurrentTab = () => {
-    if (pathname === "/profile") return "profile";
-    if (pathname === "/profile/faces") return "faces";
-    if (pathname === "/profile/products") return "products";
-    if (pathname === "/profile/settings") return "settings";
-    return "profile";
+    if (pathname === "/admin") return "dashboard";
+    if (pathname === "/admin/products") return "products";
+    if (pathname === "/admin/users") return "users";
+    if (pathname === "/admin/transactions") return "transactions";
+    return "dashboard";
   };
 
   return (
     <>
       <Navbar />
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 flex-1 py-8 space-y-8">
-        {/* Profile Navigation Tabs */}
+        {/* Admin Navigation Tabs */}
         <div className="space-y-6">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold">Profile</h1>
+            <h1 className="text-3xl font-bold">Admin Panel</h1>
             <p className="text-muted-foreground">
-              Manage your account, faces, products, and settings
+              Manage products, users, and system settings
             </p>
           </div>
 
           {/* Navigation Tabs */}
           <Tabs value={getCurrentTab()} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
-              {sidebarItems.map((item) => {
+              {adminItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <TabsTrigger
