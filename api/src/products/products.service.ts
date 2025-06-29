@@ -6,6 +6,8 @@ import { Category, CategoryDocument } from './schemas/category.schema';
 import { UserProduct, UserProductDocument } from './schemas/user-product.schema';
 import { CreateProductInput } from './dto/create-product.input';
 import { UpdateProductInput } from './dto/update-product.input';
+import { Product as ProductModel } from './models/product.model';
+import { Category as CategoryModel } from './models/category.model';
 
 @Injectable()
 export class ProductsService {
@@ -16,7 +18,7 @@ export class ProductsService {
   ) {}
 
   // Product CRUD Operations
-  async createProduct(createProductInput: CreateProductInput): Promise<Product> {
+  async createProduct(createProductInput: CreateProductInput): Promise<ProductModel> {
     const category = await this.categoryModel.findById(createProductInput.categoryId);
     if (!category) {
       throw new NotFoundException('Category not found');
@@ -27,7 +29,7 @@ export class ProductsService {
     return this.findProductById(savedProduct.id);
   }
 
-  async findAllProducts(categoryId?: string, search?: string): Promise<Product[]> {
+  async findAllProducts(categoryId?: string, search?: string): Promise<ProductModel[]> {
     const query: any = { isActive: true };
 
     if (categoryId) {
@@ -64,7 +66,7 @@ export class ProductsService {
     return products.map(product => this.transformProduct(product));
   }
 
-  async findProductById(id: string): Promise<Product> {
+  async findProductById(id: string): Promise<ProductModel> {
     const product = await this.productModel
       .findById(id)
       .populate({
@@ -82,7 +84,7 @@ export class ProductsService {
     return this.transformProduct(product);
   }
 
-  async updateProduct(id: string, updateProductInput: UpdateProductInput): Promise<Product> {
+  async updateProduct(id: string, updateProductInput: UpdateProductInput): Promise<ProductModel> {
     const product = await this.productModel.findByIdAndUpdate(
       id,
       updateProductInput,
@@ -107,7 +109,7 @@ export class ProductsService {
   }
 
   // Admin methods
-  async findAllProductsAdmin(): Promise<Product[]> {
+  async findAllProductsAdmin(): Promise<ProductModel[]> {
     const products = await this.productModel
       .find()
       .populate({
@@ -123,7 +125,7 @@ export class ProductsService {
   }
 
   // Category Operations
-  async findAllCategories(): Promise<Category[]> {
+  async findAllCategories(): Promise<CategoryModel[]> {
     const categories = await this.categoryModel
       .find({ isActive: true, isParent: false })
       .populate('parentId')
@@ -132,7 +134,7 @@ export class ProductsService {
     return categories.map(category => this.transformCategory(category));
   }
 
-  async findAllParentCategories(): Promise<Category[]> {
+  async findAllParentCategories(): Promise<CategoryModel[]> {
     const parentCategories = await this.categoryModel
       .find({ isActive: true, isParent: true })
       .exec();
@@ -178,7 +180,7 @@ export class ProductsService {
     };
   }
 
-  async findUserProducts(userId: string): Promise<UserProduct[]> {
+  async findUserProducts(userId: string): Promise<any[]> {
     const userProducts = await this.userProductModel
       .find({ userId: new Types.ObjectId(userId) })
       .populate({
@@ -204,7 +206,7 @@ export class ProductsService {
   }
 
   // Helper methods
-  private transformProduct(product: any): Product {
+  private transformProduct(product: any): ProductModel {
     return {
       id: product.id,
       name: product.name,
@@ -220,8 +222,8 @@ export class ProductsService {
     };
   }
 
-  private transformCategory(category: any): Category {
-    const result: Category = {
+  private transformCategory(category: any): CategoryModel {
+    const result: CategoryModel = {
       id: category.id,
       name: category.name,
       isParent: category.isParent,
