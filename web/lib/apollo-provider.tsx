@@ -53,13 +53,13 @@ export function ApolloProvider({ children }: { children: React.ReactNode }) {
               update() // This triggers the refresh token flow in NextAuth
                 .then((updatedSession) => {
                   if (!updatedSession) {
-                    router.push("/auth/signin");
+                    router.push("/signin");
                     observer.complete();
                   }
                 })
                 .catch(() => {
                   // If refresh fails, redirect to login
-                  router.push("/auth/signin");
+                  router.push("/signin");
                   observer.complete();
                 })
                 .finally(() => {

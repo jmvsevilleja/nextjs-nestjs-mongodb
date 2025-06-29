@@ -39,14 +39,42 @@ input AllFacesInput {
   userId: String
 }
 
+input AllUsersInput {
+  limit: Int! = 10
+  page: Int! = 1
+  searchTerm: String
+  sortBy: String
+  sortOrder: String
+}
+
 type AuthResponse {
   accessToken: String!
   refreshToken: String!
   user: User!
 }
 
+type Category {
+  createdAt: DateTime!
+  id: ID!
+  isActive: Boolean!
+  isParent: Boolean!
+  name: String!
+  parentCategory: Category
+  updatedAt: DateTime!
+}
+
 input ConfirmPaymentInput {
   transactionId: String!
+}
+
+input CreateFaceInput {
+  accessories: String
+  expression: String
+  imageUrl: String!
+  makeup: String
+  name: String!
+  productsUsed: [String!]
+  style: String
 }
 
 input CreatePaymentIntentInput {
@@ -54,6 +82,15 @@ input CreatePaymentIntentInput {
   packageType: String!
   paymentProvider: PaymentProvider!
   transactionId: String!
+}
+
+input CreateProductInput {
+  categoryId: String!
+  description: String!
+  imageUrl: String!
+  isPopular: Boolean
+  name: String!
+  price: Int!
 }
 
 input CreateTodoInput {
@@ -81,13 +118,18 @@ type DeductCreditsResponse {
 }
 
 type Face {
+  accessories: String
   createdAt: DateTime
+  expression: String
   id: ID!
   imageUrl: String!
   isLiked: Boolean
   isViewed: Boolean
   likes: Int!
+  makeup: String
   name: String!
+  productsUsed: [String!]
+  style: String
   updatedAt: DateTime
   userId: String!
   views: Int!
@@ -100,17 +142,24 @@ input LoginInput {
 
 type Mutation {
   confirmPayment(input: ConfirmPaymentInput!): Boolean!
+  createFace(input: CreateFaceInput!): Face!
   createPaymentIntent(input: CreatePaymentIntentInput!): PaymentIntent!
+  createProduct(input: CreateProductInput!): Product!
   createTodo(input: CreateTodoInput!): Todo!
   deductCredits(amount: Int!, description: String!): DeductCreditsResponse!
+  deleteFace(id: ID!): Boolean!
+  deleteProduct(id: String!): Boolean!
   deleteTodo(id: ID!): Boolean!
   incrementFaceView(faceId: ID!): Face!
   login(input: LoginInput!): AuthResponse!
   logout: Boolean!
   processTransaction(input: ProcessTransactionInput!): Boolean!
+  purchaseProduct(productId: String!): PurchaseResponse!
   refreshTokens(refreshToken: String!, userId: String!): AuthResponse!
   signup(input: CreateUserInput!): AuthResponse!
   toggleFaceLike(faceId: ID!): Face!
+  updateFace(id: ID!, input: UpdateFaceInput!): Face!
+  updateProduct(id: String!, input: UpdateProductInput!): Product!
   updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
   updateUser(input: UpdateUserInput!): User!
 }
@@ -142,17 +191,44 @@ input ProcessTransactionInput {
   transactionId: String!
 }
 
+type Product {
+  category: Category!
+  createdAt: DateTime!
+  description: String!
+  id: ID!
+  imageUrl: String!
+  isActive: Boolean!
+  isPopular: Boolean!
+  name: String!
+  price: Int!
+  rating: Float!
+  updatedAt: DateTime!
+}
+
+type PurchaseResponse {
+  message: String!
+  newBalance: Int!
+  success: Boolean!
+}
+
 type Query {
+  adminProducts: [Product!]!
   adminTransactions(limit: Int = 20, offset: Int = 0, status: String): AdminTransactionConnection!
   allFaces(input: AllFacesInput!): [Face!]!
+  allUsers(input: AllUsersInput!): [UserStats!]!
+  categories: [Category!]!
+  face(id: ID!): Face
   me: User!
   myWallet: Wallet!
+  parentCategories: [Category!]!
   paymentPackages: [PaymentPackage!]!
+  products(categoryId: String, search: String): [Product!]!
   todo(id: ID!): Todo
   todos(limit: Int = 10, offset: Int = 0, search: String, sortOrder: String, status: String): TodoConnection!
   transactionHistory(limit: Int = 10, offset: Int = 0): [Transaction!]!
   transactionStats: TransactionStats!
   user(id: ID!): User
+  userProducts: [UserProduct!]!
 }
 
 type Todo {
@@ -215,6 +291,26 @@ enum TransactionType {
   DEPOSIT
 }
 
+input UpdateFaceInput {
+  accessories: String
+  expression: String
+  imageUrl: String
+  makeup: String
+  name: String
+  productsUsed: [String!]
+  style: String
+}
+
+input UpdateProductInput {
+  categoryId: String
+  description: String
+  imageUrl: String
+  isActive: Boolean
+  isPopular: Boolean
+  name: String
+  price: Int
+}
+
 input UpdateTodoInput {
   completed: Boolean
   description: String
@@ -236,9 +332,31 @@ type User {
   updatedAt: DateTime!
 }
 
+type UserProduct {
+  createdAt: DateTime!
+  id: ID!
+  isUsed: Boolean!
+  product: Product!
+  purchaseDate: DateTime!
+  updatedAt: DateTime!
+}
+
 enum UserRole {
   ADMIN
   USER
+}
+
+type UserStats {
+  createdAt: DateTime!
+  email: String!
+  id: ID!
+  name: String!
+  profilePicture: String
+  role: UserRole!
+  totalFaces: Int!
+  totalLikes: Int!
+  totalViews: Int!
+  updatedAt: DateTime!
 }
 
 type Wallet {

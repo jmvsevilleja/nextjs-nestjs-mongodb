@@ -38,7 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const GET_ADMIN_CATEGORIES = gql`
   query GetAdminCategories {
-    adminCategories {
+    categories {
       id
       name
       isParent
@@ -111,30 +111,50 @@ export function CategoryManagement() {
   const { toast } = useToast();
 
   const { data, loading, refetch } = useQuery(GET_ADMIN_CATEGORIES);
-  const [createCategory, { loading: createLoading }] = useMutation(CREATE_CATEGORY, {
-    onCompleted: () => {
-      toast({ title: "Success", description: "Category created successfully" });
-      setIsDialogOpen(false);
-      form.reset();
-      refetch();
-    },
-    onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    },
-  });
+  const [createCategory, { loading: createLoading }] = useMutation(
+    CREATE_CATEGORY,
+    {
+      onCompleted: () => {
+        toast({
+          title: "Success",
+          description: "Category created successfully",
+        });
+        setIsDialogOpen(false);
+        form.reset();
+        refetch();
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    }
+  );
 
-  const [updateCategory, { loading: updateLoading }] = useMutation(UPDATE_CATEGORY, {
-    onCompleted: () => {
-      toast({ title: "Success", description: "Category updated successfully" });
-      setIsDialogOpen(false);
-      setEditingCategory(null);
-      form.reset();
-      refetch();
-    },
-    onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    },
-  });
+  const [updateCategory, { loading: updateLoading }] = useMutation(
+    UPDATE_CATEGORY,
+    {
+      onCompleted: () => {
+        toast({
+          title: "Success",
+          description: "Category updated successfully",
+        });
+        setIsDialogOpen(false);
+        setEditingCategory(null);
+        form.reset();
+        refetch();
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    }
+  );
 
   const [deleteCategory] = useMutation(DELETE_CATEGORY, {
     onCompleted: () => {
@@ -142,7 +162,11 @@ export function CategoryManagement() {
       refetch();
     },
     onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -225,7 +249,7 @@ export function CategoryManagement() {
       const parentId = category.parentCategory.id;
       if (!acc[parentId]) {
         acc[parentId] = {
-          parent: categories.find(c => c.id === parentId)!,
+          parent: categories.find((c) => c.id === parentId)!,
           children: [],
         };
       }
@@ -246,11 +270,14 @@ export function CategoryManagement() {
             Manage product categories and subcategories
           </p>
         </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}>
+
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}
+        >
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -268,7 +295,10 @@ export function CategoryManagement() {
             </DialogHeader>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="name"
@@ -289,8 +319,10 @@ export function CategoryManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category Type</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(value === "true")} 
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(value === "true")
+                        }
                         defaultValue={field.value ? "true" : "false"}
                       >
                         <FormControl>
@@ -315,7 +347,10 @@ export function CategoryManagement() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Parent Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select parent category" />
@@ -343,8 +378,15 @@ export function CategoryManagement() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={createLoading || updateLoading}>
-                    {createLoading || updateLoading ? "Saving..." : editingCategory ? "Update Category" : "Create Category"}
+                  <Button
+                    type="submit"
+                    disabled={createLoading || updateLoading}
+                  >
+                    {createLoading || updateLoading
+                      ? "Saving..."
+                      : editingCategory
+                      ? "Update Category"
+                      : "Create Category"}
                   </Button>
                 </div>
               </form>
@@ -358,7 +400,9 @@ export function CategoryManagement() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FolderTree className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No categories created yet</h3>
+            <h3 className="text-lg font-medium mb-2">
+              No categories created yet
+            </h3>
             <p className="text-muted-foreground text-center mb-4">
               Start by creating your first product category.
             </p>
