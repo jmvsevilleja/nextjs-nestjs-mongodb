@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
-import { Category, CategoryDocument, ParentCategory, ParentCategoryDocument } from './schemas/category.schema';
+import { Category, CategoryDocument } from './schemas/category.schema';
 import { UserProduct, UserProductDocument } from './schemas/user-product.schema';
 import { CreateProductInput } from './dto/create-product.input';
 import { UpdateProductInput } from './dto/update-product.input';
@@ -12,7 +12,6 @@ export class ProductsService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
-    @InjectModel(ParentCategory.name) private parentCategoryModel: Model<ParentCategoryDocument>,
     @InjectModel(UserProduct.name) private userProductModel: Model<UserProductDocument>,
   ) {}
 
@@ -32,11 +31,15 @@ export class ProductsService {
     const query: any = { isActive: true };
 
     if (categoryId) {
-      // If categoryId is a parent category, find all categories under it
-      const parentCategory = await this.parentCategoryModel.findById(categoryId);
-      if (parentCategory) {
-        const categories = await this.categoryModel.find({ parentCategoryId: categoryId });
-        const categoryIds = categories.map(cat => cat._id);
+      // Check if categoryId is a parent category
+      const category = await this.categoryModel.findById(categoryId);
+      if (category?.isParent) {
+        // Find all child categories under this parent
+        const childCategories = await this.categoryModel.find({ 
+          parentId: categoryId,
+          isActive: true 
+        });
+        const categoryIds = childCategories.map(cat => cat._id);
         query.categoryId = { $in: categoryIds };
       } else {
         query.categoryId = new Types.ObjectId(categoryId);
@@ -52,7 +55,7 @@ export class ProductsService {
       .populate({
         path: 'categoryId',
         populate: {
-          path: 'parentCategoryId',
+          path: 'parentId',
         },
       })
       .sort({ isPopular: -1, rating: -1, createdAt: -1 })
@@ -67,7 +70,7 @@ export class ProductsService {
       .populate({
         path: 'categoryId',
         populate: {
-          path: 'parentCategoryId',
+          path: 'parentId',
         },
       })
       .exec();
@@ -110,7 +113,7 @@ export class ProductsService {
       .populate({
         path: 'categoryId',
         populate: {
-          path: 'parentCategoryId',
+          path: 'parentId',
         },
       })
       .sort({ createdAt: -1 })
@@ -122,16 +125,16 @@ export class ProductsService {
   // Category Operations
   async findAllCategories(): Promise<Category[]> {
     const categories = await this.categoryModel
-      .find({ isActive: true })
-      .populate('parentCategoryId')
+      .find({ isActive: true, isParent: false })
+      .populate('parentId')
       .exec();
 
     return categories.map(category => this.transformCategory(category));
   }
 
-  async findAllParentCategories(): Promise<ParentCategory[]> {
-    const parentCategories = await this.parentCategoryModel
-      .find({ isActive: true })
+  async findAllParentCategories(): Promise<Category[]> {
+    const parentCategories = await this.categoryModel
+      .find({ isActive: true, isParent: true })
       .exec();
 
     return parentCategories.map(pc => pc.toJSON());
@@ -183,7 +186,7 @@ export class ProductsService {
         populate: {
           path: 'categoryId',
           populate: {
-            path: 'parentCategoryId',
+            path: 'parentId',
           },
         },
       })
@@ -218,19 +221,26 @@ export class ProductsService {
   }
 
   private transformCategory(category: any): Category {
-    return {
+    const result: Category = {
       id: category.id,
       name: category.name,
-      parentCategory: {
-        id: category.parentCategoryId.id,
-        name: category.parentCategoryId.name,
-        isActive: category.parentCategoryId.isActive,
-        createdAt: category.parentCategoryId.createdAt,
-        updatedAt: category.parentCategoryId.updatedAt,
-      },
+      isParent: category.isParent,
       isActive: category.isActive,
       createdAt: category.createdAt,
       updatedAt: category.updatedAt,
     };
+
+    if (category.parentId && !category.isParent) {
+      result.parent = {
+        id: category.parentId.id,
+        name: category.parentId.name,
+        isParent: category.parentId.isParent,
+        isActive: category.parentId.isActive,
+        createdAt: category.parentId.createdAt,
+        updatedAt: category.parentId.updatedAt,
+      };
+    }
+
+    return result;
   }
 }

@@ -1,24 +1,6 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 
 @ObjectType()
-export class ParentCategory {
-  @Field(() => ID)
-  id: string;
-
-  @Field()
-  name: string;
-
-  @Field()
-  isActive: boolean;
-
-  @Field()
-  createdAt: Date;
-
-  @Field()
-  updatedAt: Date;
-}
-
-@ObjectType()
 export class Category {
   @Field(() => ID)
   id: string;
@@ -26,8 +8,11 @@ export class Category {
   @Field()
   name: string;
 
-  @Field(() => ParentCategory)
-  parentCategory: ParentCategory;
+  @Field()
+  isParent: boolean;
+
+  @Field(() => Category, { nullable: true })
+  parent?: Category;
 
   @Field()
   isActive: boolean;

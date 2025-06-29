@@ -2,7 +2,7 @@ import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { UseGuards, Inject } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { Product } from './models/product.model';
-import { Category, ParentCategory } from './models/category.model';
+import { Category } from './models/category.model';
 import { UserProduct, PurchaseResponse } from './models/user-product.model';
 import { CreateProductInput } from './dto/create-product.input';
 import { UpdateProductInput } from './dto/update-product.input';
@@ -35,8 +35,8 @@ export class ProductsResolver {
     return this.productsService.findAllCategories();
   }
 
-  @Query(() => [ParentCategory])
-  async parentCategories(): Promise<ParentCategory[]> {
+  @Query(() => [Category])
+  async parentCategories(): Promise<Category[]> {
     this.logger.info('Processing parentCategories query');
     return this.productsService.findAllParentCategories();
   }
