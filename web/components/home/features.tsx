@@ -55,25 +55,26 @@ const Features = () => {
     >
       <div className="text-center mb-12">
         <h2 className="text-3xl xs:text-4xl md:text-5xl md:leading-[3.5rem] font-bold tracking-tight">
-          The Story Behind Face Me
+          The Story Behind Mukha
         </h2>
         <div className="mt-6 max-w-4xl mx-auto space-y-4 text-lg text-muted-foreground">
           <p>
             The inspiration for{" "}
-            <strong className="text-foreground">Face Me</strong> came from a
+            <strong className="text-foreground">Mukha</strong> came from a
             simple but common problem:
           </p>
           <p>
             When shopping online, especially for fashion and beauty items,
-            there's no easy way to
+            there&apos;s no easy way to
             <em className="text-foreground">
               {" "}
-              see how you'd actually look
+              see how you&apos;d actually look
             </em>{" "}
             wearing them before you buy.
           </p>
           <p>
-            Whether it's <strong className="text-primary">eyeglasses</strong>,{" "}
+            Whether it&apos;s{" "}
+            <strong className="text-primary">eyeglasses</strong>,{" "}
             <strong className="text-primary">lipstick</strong>,
             <strong className="text-primary"> hats</strong>, or{" "}
             <strong className="text-primary">earrings</strong>, it felt like a
@@ -84,8 +85,8 @@ const Features = () => {
             </em>
           </p>
           <p>
-            That's how the idea of{" "}
-            <strong className="text-primary">Face Me</strong> was born — an
+            That&apos;s how the idea of{" "}
+            <strong className="text-primary">Mukha</strong> was born — an
             AI-powered face styling and monetization app.
           </p>
         </div>

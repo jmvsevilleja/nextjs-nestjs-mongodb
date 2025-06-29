@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ShoppingBag, Package, Star } from "lucide-react";
@@ -83,9 +83,10 @@ export default function UserProductsPage() {
 
   const categories = Object.keys(groupedProducts);
 
-  const filteredProducts = selectedCategory === "all" 
-    ? userProducts 
-    : groupedProducts[selectedCategory] || [];
+  const filteredProducts =
+    selectedCategory === "all"
+      ? userProducts
+      : groupedProducts[selectedCategory] || [];
 
   return (
     <div className="space-y-6">
@@ -103,9 +104,12 @@ export default function UserProductsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No products purchased yet</h3>
+            <h3 className="text-lg font-medium mb-2">
+              No products purchased yet
+            </h3>
             <p className="text-muted-foreground text-center mb-4">
-              Visit the shop to purchase digital products for face customization.
+              Visit the shop to purchase digital products for face
+              customization.
             </p>
           </CardContent>
         </Card>
@@ -117,7 +121,7 @@ export default function UserProductsPage() {
               <TabsTrigger value="all">All ({userProducts.length})</TabsTrigger>
               {categories.slice(0, 4).map((category) => (
                 <TabsTrigger key={category} value={category}>
-                  {category.split(' ')[0]} ({groupedProducts[category].length})
+                  {category.split(" ")[0]} ({groupedProducts[category].length})
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -158,7 +162,11 @@ export default function UserProductsPage() {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Purchased: {format(new Date(userProduct.purchaseDate), "MMM dd, yyyy")}
+                          Purchased:{" "}
+                          {format(
+                            new Date(userProduct.purchaseDate),
+                            "MMM dd, yyyy"
+                          )}
                         </p>
                       </div>
                     </CardContent>

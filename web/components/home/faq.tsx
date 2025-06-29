@@ -11,7 +11,7 @@ const faq = [
   {
     question: "How does the virtual try-on technology work?",
     answer:
-      "Face Me uses advanced AI to map your facial features and realistically apply virtual accessories, makeup, and styling elements. Simply upload your photo or use our camera feature to see how different items look on you.",
+      "Mukha uses advanced AI to map your facial features and realistically apply virtual accessories, makeup, and styling elements. Simply upload your photo or use our camera feature to see how different items look on you.",
   },
   {
     question: "What types of items can I try on virtually?",
@@ -19,7 +19,7 @@ const faq = [
       "You can try on eyeglasses, sunglasses, hats, earrings, lipstick, makeup looks, and various fashion accessories. We're constantly adding new categories and products to our virtual try-on library.",
   },
   {
-    question: "How do credits work in Face Me?",
+    question: "How do credits work in Mukha?",
     answer:
       "Credits are used to generate AI-styled faces, view larger images, and access premium features. You earn credits when others view and like your creations, and you can purchase additional credits through our packages.",
   },
@@ -47,7 +47,7 @@ const FAQ = () => {
         Frequently Asked Questions
       </h2>
       <p className="mt-1.5 md:text-center xs:text-lg text-muted-foreground">
-        Everything you need to know about Face Me's virtual styling platform.
+        Everything you need to know about Mukha&apos;s virtual styling platform.
       </p>
 
       <div className="min-h-[550px] md:min-h-[320px] xl:min-h-[300px]">

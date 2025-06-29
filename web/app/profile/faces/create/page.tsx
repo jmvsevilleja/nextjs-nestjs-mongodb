@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Button } from "@/components/ui/button";
@@ -161,7 +160,7 @@ interface ProductsByCategory {
 }
 
 export default function CreateFacePage() {
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
   const router = useRouter();
   const { toast } = useToast();
 

@@ -3,7 +3,13 @@
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { BarChart3, Package, Users, CreditCard, FolderTree } from "lucide-react";
+import {
+  BarChart3,
+  Package,
+  Users,
+  CreditCard,
+  FolderTree,
+} from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/home/footer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -69,7 +75,9 @@ export default function AdminLayout({
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-destructive">Access Denied</h1>
-          <p className="text-muted-foreground">You don't have permission to access this page.</p>
+          <p className="text-muted-foreground">
+            You don&apos;t have permission to access this page.
+          </p>
         </div>
       </div>
     );
@@ -113,7 +121,9 @@ export default function AdminLayout({
                     <Link href={item.href}>
                       <Icon className="h-4 w-4" />
                       <span className="hidden sm:inline">{item.label}</span>
-                      <span className="sm:hidden">{item.label.split(' ')[0]}</span>
+                      <span className="sm:hidden">
+                        {item.label.split(" ")[0]}
+                      </span>
                     </Link>
                   </TabsTrigger>
                 );
@@ -123,9 +133,7 @@ export default function AdminLayout({
         </div>
 
         {/* Main Content */}
-        <div className="w-full">
-          {children}
-        </div>
+        <div className="w-full">{children}</div>
       </div>
       <Footer />
     </>

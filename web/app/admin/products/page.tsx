@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -142,30 +142,50 @@ export default function AdminProductsPage() {
   const { toast } = useToast();
 
   const { data, loading, refetch } = useQuery(GET_ADMIN_PRODUCTS);
-  const [createProduct, { loading: createLoading }] = useMutation(CREATE_PRODUCT, {
-    onCompleted: () => {
-      toast({ title: "Success", description: "Product created successfully" });
-      setIsDialogOpen(false);
-      form.reset();
-      refetch();
-    },
-    onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    },
-  });
+  const [createProduct, { loading: createLoading }] = useMutation(
+    CREATE_PRODUCT,
+    {
+      onCompleted: () => {
+        toast({
+          title: "Success",
+          description: "Product created successfully",
+        });
+        setIsDialogOpen(false);
+        form.reset();
+        refetch();
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    }
+  );
 
-  const [updateProduct, { loading: updateLoading }] = useMutation(UPDATE_PRODUCT, {
-    onCompleted: () => {
-      toast({ title: "Success", description: "Product updated successfully" });
-      setIsDialogOpen(false);
-      setEditingProduct(null);
-      form.reset();
-      refetch();
-    },
-    onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    },
-  });
+  const [updateProduct, { loading: updateLoading }] = useMutation(
+    UPDATE_PRODUCT,
+    {
+      onCompleted: () => {
+        toast({
+          title: "Success",
+          description: "Product updated successfully",
+        });
+        setIsDialogOpen(false);
+        setEditingProduct(null);
+        form.reset();
+        refetch();
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    }
+  );
 
   const [deleteProduct] = useMutation(DELETE_PRODUCT, {
     onCompleted: () => {
@@ -173,7 +193,11 @@ export default function AdminProductsPage() {
       refetch();
     },
     onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -255,11 +279,14 @@ export default function AdminProductsPage() {
             Manage digital products available in the shop
           </p>
         </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}>
+
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}
+        >
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -277,7 +304,10 @@ export default function AdminProductsPage() {
             </DialogHeader>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -304,7 +334,9 @@ export default function AdminProductsPage() {
                             type="number"
                             placeholder="0"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -320,7 +352,7 @@ export default function AdminProductsPage() {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea 
+                        <Textarea
                           placeholder="Enter product description"
                           {...field}
                         />
@@ -338,7 +370,10 @@ export default function AdminProductsPage() {
                       <FormItem>
                         <FormLabel>Image URL</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://example.com/image.jpg" {...field} />
+                          <Input
+                            placeholder="https://example.com/image.jpg"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -351,7 +386,10 @@ export default function AdminProductsPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select category" />
@@ -379,8 +417,15 @@ export default function AdminProductsPage() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={createLoading || updateLoading}>
-                    {createLoading || updateLoading ? "Saving..." : editingProduct ? "Update Product" : "Create Product"}
+                  <Button
+                    type="submit"
+                    disabled={createLoading || updateLoading}
+                  >
+                    {createLoading || updateLoading
+                      ? "Saving..."
+                      : editingProduct
+                      ? "Update Product"
+                      : "Create Product"}
                   </Button>
                 </div>
               </form>
@@ -394,7 +439,9 @@ export default function AdminProductsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No products created yet</h3>
+            <h3 className="text-lg font-medium mb-2">
+              No products created yet
+            </h3>
             <p className="text-muted-foreground text-center mb-4">
               Start by creating your first digital product for the shop.
             </p>
@@ -434,9 +481,7 @@ export default function AdminProductsPage() {
                     {product.description}
                   </p>
                   <div className="flex items-center justify-between">
-                    <Badge variant="outline">
-                      {product.category.name}
-                    </Badge>
+                    <Badge variant="outline">{product.category.name}</Badge>
                     <span className="text-sm font-medium">
                       {product.price} credits
                     </span>

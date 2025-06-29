@@ -3,25 +3,24 @@ import {
   CardHeader,
   CardContent,
   CardFooter,
-  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Heart, Loader2, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
-import { Face } from "@/app/faces/page";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { IFace, IUserProduct } from "@/types";
 
 type FacesListProps = {
-  displayedFaces: Face[];
+  displayedFaces: IFace[];
   searchTerm: string;
   isLoadingMore: boolean;
   hasMoreFaces: boolean;
-  handleFaceClick: (face: Face) => void;
-  handleLike: (face: Face, e: React.MouseEvent) => void;
-  userProducts?: any[];
+  handleFaceClick: (face: IFace) => void;
+  handleLike: (face: IFace, e: React.MouseEvent) => void;
+  userProducts?: IUserProduct[];
 };
 
 export function FacesList({
@@ -39,7 +38,9 @@ export function FacesList({
 
   // Helper function to get product name by ID
   const getProductName = (productId: string) => {
-    const userProduct = userProducts.find((up) => up.product.id === productId);
+    const userProduct = userProducts.find(
+      (up: IUserProduct) => up.product.id === productId
+    );
     return userProduct?.product.name || productId;
   };
 
@@ -49,7 +50,7 @@ export function FacesList({
   };
 
   // Helper function to render tags for a face
-  const renderFaceTags = (face: Face, isExpanded: boolean = false) => {
+  const renderFaceTags = (face: IFace, isExpanded: boolean = false) => {
     const tags = [];
 
     // 1. Username tag (blue)
@@ -113,7 +114,9 @@ export function FacesList({
             className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300 text-xs cursor-pointer hover:bg-gray-200"
             onClick={(e) => {
               e.stopPropagation();
-              setExpandedFaces((prev) => new Set([...prev, face.id]));
+              setExpandedFaces(
+                (prev) => new Set([...Array.from(prev), face.id])
+              );
             }}
           >
             <MoreHorizontal className="h-3 w-3" />
@@ -125,20 +128,20 @@ export function FacesList({
     return tags;
   };
 
-  const toggleExpanded = (faceId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpandedFaces((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(faceId)) {
-        newSet.delete(faceId);
-      } else {
-        newSet.add(faceId);
-      }
-      return newSet;
-    });
-  };
+  // const toggleExpanded = (faceId: string, e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   setExpandedFaces((prev) => {
+  //     const newSet = new Set(prev);
+  //     if (newSet.has(faceId)) {
+  //       newSet.delete(faceId);
+  //     } else {
+  //       newSet.add(faceId);
+  //     }
+  //     return newSet;
+  //   });
+  // };
 
-  const handleLikeClick = (face: Face, e: React.MouseEvent) => {
+  const handleLikeClick = (face: IFace, e: React.MouseEvent) => {
     e.stopPropagation();
     // Check if user is authenticated before allowing like
     if (!session) {

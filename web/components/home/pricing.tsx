@@ -11,7 +11,7 @@ const plans = [
     price: 5,
     credits: 100,
     description:
-      "Perfect for trying out Face Me and creating your first styled looks.",
+      "Perfect for trying out Mukha and creating your first styled looks.",
     features: [
       "100 credits included",
       "Basic face styling",

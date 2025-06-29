@@ -13,13 +13,12 @@ const Hero = () => {
             AI-Powered Virtual Try-On
           </Badge>
           <h1 className="mt-6 max-w-[20ch] text-3xl xs:text-4xl sm:text-5xl lg:text-[2.75rem] xl:text-5xl font-bold !leading-[1.2] tracking-tight">
-            Try Before You Buy with{" "}
-            <span className="text-primary">Face Me</span>
+            Try Before You Buy with <span className="text-primary">Mukha</span>
           </h1>
           <p className="mt-6 max-w-[60ch] xs:text-lg">
-            See how you'd actually look wearing eyeglasses, lipstick, hats, or
-            earrings before you buy. Create stunning AI-generated looks, share
-            them with the community, and even monetize your style.
+            See how you&apos;d actually look wearing eyeglasses, lipstick, hats,
+            or earrings before you buy. Create stunning AI-generated looks,
+            share them with the community, and even monetize your style.
           </p>
           <div className="mt-12 flex flex-col sm:flex-row items-center gap-4">
             <Link href="/faces">

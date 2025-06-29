@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -83,31 +83,28 @@ interface Product {
   rating: number;
 }
 
-interface Category {
-  id: string;
-  name: string;
-  parentCategory: {
-    id: string;
-    name: string;
-  };
-}
-
 interface ParentCategory {
   id: string;
   name: string;
 }
 
 export default function ShopPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [purchasingProduct, setPurchasingProduct] = useState<string | null>(null);
+  const [purchasingProduct, setPurchasingProduct] = useState<string | null>(
+    null
+  );
 
   const { data: categoriesData } = useQuery(GET_CATEGORIES);
-  const { data: productsData, loading: productsLoading, refetch } = useQuery(GET_PRODUCTS, {
+  const {
+    data: productsData,
+    loading: productsLoading,
+    refetch,
+  } = useQuery(GET_PRODUCTS, {
     variables: {
       categoryId: selectedCategory === "all" ? null : selectedCategory,
       search: searchTerm || null,
@@ -155,8 +152,9 @@ export default function ShopPage() {
   }
 
   const products: Product[] = productsData?.products || [];
-  const categories: Category[] = categoriesData?.categories || [];
-  const parentCategories: ParentCategory[] = categoriesData?.parentCategories || [];
+  // const categories: Category[] = categoriesData?.categories || [];
+  const parentCategories: ParentCategory[] =
+    categoriesData?.parentCategories || [];
 
   const handlePurchase = async (productId: string) => {
     setPurchasingProduct(productId);
@@ -172,7 +170,7 @@ export default function ShopPage() {
   return (
     <>
       <Navbar />
-      
+
       <main className="max-w-screen-xl mx-auto px-4 sm:px-6 flex-1 py-8 space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -201,7 +199,7 @@ export default function ShopPage() {
             <TabsTrigger value="all">All Products</TabsTrigger>
             {parentCategories.slice(0, 4).map((parentCategory) => (
               <TabsTrigger key={parentCategory.id} value={parentCategory.id}>
-                {parentCategory.name.split(' ')[0]}
+                {parentCategory.name.split(" ")[0]}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -215,9 +213,13 @@ export default function ShopPage() {
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Package className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No products found</h3>
+                  <h3 className="text-lg font-medium mb-2">
+                    No products found
+                  </h3>
                   <p className="text-muted-foreground text-center">
-                    {searchTerm ? "Try a different search term" : "No products available in this category"}
+                    {searchTerm
+                      ? "Try a different search term"
+                      : "No products available in this category"}
                   </p>
                 </CardContent>
               </Card>
@@ -250,7 +252,7 @@ export default function ShopPage() {
                             {product.description}
                           </p>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <Badge variant="outline">
                             {product.category.name}

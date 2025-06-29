@@ -19,7 +19,7 @@ import {
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/home/footer";
-import { Face } from "@/app/faces/page";
+import { IFace, IUserProduct } from "@/types";
 import { format } from "date-fns";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
@@ -103,16 +103,11 @@ export default function UserProfilePage() {
     "views"
   );
   const [sortOrder] = useState<"asc" | "desc">("desc");
-  const [allFaces, setAllFaces] = useState<Face[]>([]);
-  const [displayedFaces, setDisplayedFaces] = useState<Face[]>([]);
+  const [allFaces, setAllFaces] = useState<IFace[]>([]);
+  const [displayedFaces, setDisplayedFaces] = useState<IFace[]>([]);
   const [hasMoreFaces, setHasMoreFaces] = useState(true);
   const [isLoadingMore] = useState(false);
   const [expandedFaces, setExpandedFaces] = useState<Set<string>>(new Set());
-
-  if (status === "unauthenticated") {
-    router.push("/signin");
-    return null;
-  }
 
   // Fetch user profile - no authentication required
   const { data: userProfileData, loading: userLoading } = useQuery(
@@ -201,6 +196,11 @@ export default function UserProfilePage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [loadMoreFaces]);
 
+  if (status === "unauthenticated") {
+    router.push("/signin");
+    return null;
+  }
+
   // Event Handlers
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -210,21 +210,21 @@ export default function UserProfilePage() {
     setSortBy(value);
   };
 
-  const handleFaceClick = (face: Face) => {
+  const handleFaceClick = (face: IFace) => {
     // Navigate back to faces page with this face highlighted
     router.push(`/faces?highlight=${face.id}`);
   };
 
-  const handleLike = (face: Face, event: React.MouseEvent) => {
-    event.stopPropagation();
-    // Check if user is authenticated before allowing like
-    if (!session) {
-      router.push("/signin");
-      return;
-    }
-    // This would be implemented similar to the faces page
-    console.log("Like face:", face.id);
-  };
+  // const handleLike = (face: Face, event: React.MouseEvent) => {
+  //   event.stopPropagation();
+  //   // Check if user is authenticated before allowing like
+  //   if (!session) {
+  //     router.push("/signin");
+  //     return;
+  //   }
+  //   // This would be implemented similar to the faces page
+  //   console.log("Like face:", face.id);
+  // };
 
   const getButtonClass = (value: "createdAt" | "views" | "likes") => {
     return `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -238,7 +238,9 @@ export default function UserProfilePage() {
   const userProducts = productsData?.userProducts || [];
 
   const getProductName = (productId: string) => {
-    const userProduct = userProducts.find((up) => up.product.id === productId);
+    const userProduct = userProducts.find(
+      (up: IUserProduct) => up.product.id === productId
+    );
     return userProduct?.product.name || productId;
   };
 
@@ -246,7 +248,7 @@ export default function UserProfilePage() {
     return faceName.split("-")[0] || "user";
   };
 
-  const renderFaceTags = (face: Face, isExpanded: boolean = false) => {
+  const renderFaceTags = (face: IFace, isExpanded: boolean = false) => {
     const tags = [];
 
     // 1. Username tag (blue)
@@ -310,7 +312,9 @@ export default function UserProfilePage() {
             className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300 text-xs cursor-pointer hover:bg-gray-200"
             onClick={(e) => {
               e.stopPropagation();
-              setExpandedFaces((prev) => new Set([...prev, face.id]));
+              setExpandedFaces(
+                (prev) => new Set([...Array.from(prev), face.id])
+              );
             }}
           >
             <MoreHorizontal className="h-3 w-3" />
@@ -340,7 +344,7 @@ export default function UserProfilePage() {
           <div className="text-center">
             <h1 className="text-2xl font-bold">User not found</h1>
             <p className="text-muted-foreground">
-              The user you're looking for doesn't exist.
+              The user you&apos;re looking for doesn&apos;t exist.
             </p>
             <Button onClick={() => router.push("/people")} className="mt-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -472,8 +476,8 @@ export default function UserProfilePage() {
                     Sign in to interact with faces
                   </p>
                   <p className="text-xs text-blue-700 dark:text-blue-300">
-                    You can view all faces, but you'll need to sign in to like
-                    faces or view larger images.
+                    You can view all faces, but you&apos;ll need to sign in to
+                    like faces or view larger images.
                   </p>
                 </div>
                 <Button

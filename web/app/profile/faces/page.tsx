@@ -1,32 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Edit, User, ShoppingCart } from "lucide-react";
+import { Plus, Trash2, Edit, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-const GET_USER_PROFILE = gql`
-  query GetUserProfile {
-    me {
-      id
-      name
-      email
-      profilePicture
-    }
-  }
-`;
+// const GET_USER_PROFILE = gql`
+//   query GetUserProfile {
+//     me {
+//       id
+//       name
+//       email
+//       profilePicture
+//     }
+//   }
+// `;
 
 const GET_USER_FACES = gql`
   query GetUserFaces($input: AllFacesInput!) {
@@ -125,8 +119,12 @@ export default function FaceManagementPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const { data: profileData } = useQuery(GET_USER_PROFILE);
-  const { data: facesData, loading, refetch } = useQuery(GET_USER_FACES, {
+  // const { data: profileData } = useQuery(GET_USER_PROFILE);
+  const {
+    data: facesData,
+    loading,
+    refetch,
+  } = useQuery(GET_USER_FACES, {
     variables: {
       input: {
         page: 1,
@@ -156,7 +154,7 @@ export default function FaceManagementPage() {
     },
   });
 
-  const user = profileData?.me;
+  // const user = profileData?.me;
   const faces: Face[] = facesData?.allFaces || [];
   const userProducts: UserProduct[] = productsData?.userProducts || [];
 
@@ -178,22 +176,25 @@ export default function FaceManagementPage() {
 
   // Helper function to get product name by ID
   const getProductName = (productId: string) => {
-    const userProduct = userProducts.find(up => up.product.id === productId);
+    const userProduct = userProducts.find((up) => up.product.id === productId);
     return userProduct?.product.name || productId;
   };
 
   // Helper function to parse face name into username
   const parseUsername = (faceName: string) => {
-    return faceName.split('-')[0] || 'user';
+    return faceName.split("-")[0] || "user";
   };
 
   // Helper function to render tags for a face
   const renderFaceTags = (face: Face) => {
     const tags = [];
-    
+
     // 1. Username tag (blue)
     tags.push(
-      <Badge key="username" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+      <Badge
+        key="username"
+        className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+      >
         {parseUsername(face.name)}
       </Badge>
     );
@@ -201,7 +202,10 @@ export default function FaceManagementPage() {
     // 2. Expression tag (green)
     if (face.expression) {
       tags.push(
-        <Badge key="expression" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+        <Badge
+          key="expression"
+          className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+        >
           {face.expression}
         </Badge>
       );
@@ -210,7 +214,10 @@ export default function FaceManagementPage() {
     // 3. Style tag (purple)
     if (face.style) {
       tags.push(
-        <Badge key="style" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+        <Badge
+          key="style"
+          className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
+        >
           {face.style}
         </Badge>
       );
@@ -221,7 +228,10 @@ export default function FaceManagementPage() {
       face.productsUsed.forEach((productId, index) => {
         const productName = getProductName(productId);
         tags.push(
-          <Badge key={`product-${index}`} className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
+          <Badge
+            key={`product-${index}`}
+            className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
+          >
             {productName}
           </Badge>
         );
@@ -245,10 +255,11 @@ export default function FaceManagementPage() {
         <div className="space-y-2">
           <h2 className="text-2xl font-bold">Face Management</h2>
           <p className="text-muted-foreground">
-            Generate and customize your face images with different expressions, styles, and accessories
+            Generate and customize your face images with different expressions,
+            styles, and accessories
           </p>
         </div>
-        
+
         <Button onClick={handleCreateNew}>
           <Plus className="h-4 w-4 mr-2" />
           Generate New Face
@@ -312,7 +323,7 @@ export default function FaceManagementPage() {
                   <div className="flex flex-wrap gap-1">
                     {renderFaceTags(face)}
                   </div>
-                  
+
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-1">

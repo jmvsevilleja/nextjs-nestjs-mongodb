@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation";
 import { FacesList } from "../../components/faces/faces-list";
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/home/footer";
+import { IFace, IUserProduct } from "@/types";
 
 // Update GraphQL query to include pagination and sorting parameters
 const GET_ALL_FACES = gql`
@@ -110,22 +111,6 @@ const DEDUCT_CREDITS = gql`
   }
 `;
 
-export interface Face {
-  id: string;
-  name: string;
-  imageUrl: string;
-  views: number;
-  likes: number;
-  createdAt: Date;
-  isLiked?: boolean;
-  isViewed?: boolean;
-  expression?: string;
-  style?: string;
-  makeup?: string;
-  accessories?: string;
-  productsUsed?: string[];
-}
-
 export default function FacesPage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -135,7 +120,7 @@ export default function FacesPage() {
   const [isLoadingMore] = useState(false);
 
   // State for image viewing
-  const [selectedFace, setSelectedFace] = useState<Face | null>(null);
+  const [selectedFace, setSelectedFace] = useState<IFace | null>(null);
   const [showCreditPrompt, setShowCreditPrompt] = useState(false);
   const [viewedFaces] = useState<Set<string>>(new Set());
 
@@ -155,8 +140,8 @@ export default function FacesPage() {
     "views"
   );
   const [sortOrder] = useState<"asc" | "desc">("desc");
-  const [allFaces, setAllFaces] = useState<Face[]>([]);
-  const [displayedFaces, setDisplayedFaces] = useState<Face[]>([]);
+  const [allFaces, setAllFaces] = useState<IFace[]>([]);
+  const [displayedFaces, setDisplayedFaces] = useState<IFace[]>([]);
   const [hasMoreFaces, setHasMoreFaces] = useState(true);
 
   // Fetch faces with pagination - REMOVED userId to show all faces
@@ -253,7 +238,7 @@ export default function FacesPage() {
     setSortBy(value);
   };
 
-  const handleFaceClick = async (face: Face) => {
+  const handleFaceClick = async (face: IFace) => {
     if (!session) {
       toast({
         title: "Authentication Required",
@@ -323,7 +308,7 @@ export default function FacesPage() {
     }
   };
 
-  const handleLike = async (face: Face, event: React.MouseEvent) => {
+  const handleLike = async (face: IFace, event: React.MouseEvent) => {
     event.stopPropagation();
 
     if (!session) {
@@ -382,7 +367,9 @@ export default function FacesPage() {
 
   // Helper function to get product name by ID
   const getProductName = (productId: string) => {
-    const userProduct = userProducts.find((up) => up.product.id === productId);
+    const userProduct = userProducts.find(
+      (up: IUserProduct) => up.product.id === productId
+    );
     return userProduct?.product.name || productId;
   };
 
@@ -392,7 +379,7 @@ export default function FacesPage() {
   };
 
   // Helper function to render face tags for dialog
-  const renderFaceTags = (face: Face) => {
+  const renderFaceTags = (face: IFace) => {
     const tags = [];
 
     // 1. Username tag (blue)

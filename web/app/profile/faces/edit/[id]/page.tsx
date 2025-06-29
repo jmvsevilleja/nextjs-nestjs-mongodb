@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, User, ShoppingCart } from "lucide-react";
+import { ArrowLeft, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
@@ -180,7 +179,7 @@ interface ProductsByCategory {
 }
 
 export default function EditFacePage() {
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
@@ -403,7 +402,7 @@ export default function EditFacePage() {
       <div className="text-center py-8">
         <h2 className="text-2xl font-bold mb-2">Face not found</h2>
         <p className="text-muted-foreground mb-4">
-          The face you're looking for doesn't exist.
+          The face you&apos;re looking for doesn&apos;t exist.
         </p>
         <Button onClick={() => router.push("/profile/faces")}>
           <ArrowLeft className="h-4 w-4 mr-2" />

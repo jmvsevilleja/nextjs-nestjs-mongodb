@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import { StarIcon } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const testimonials = [
@@ -19,7 +18,7 @@ const testimonials = [
     designation: "Fashion Blogger",
     company: "StyleDaily",
     testimonial:
-      "Face Me completely changed how I shop for accessories! I can finally see how glasses and earrings look on me before buying. " +
+      "Mukha completely changed how I shop for accessories! I can finally see how glasses and earrings look on me before buying. " +
       "The AI styling is incredibly realistic, and I love sharing my looks with the community.",
     avatar: "https://randomuser.me/api/portraits/women/1.jpg",
   },
@@ -29,7 +28,7 @@ const testimonials = [
     designation: "Content Creator",
     company: "TechReviews",
     testimonial:
-      "As someone who reviews fashion tech, Face Me impressed me with its accuracy. The virtual try-on for eyewear is spot-on, " +
+      "As someone who reviews fashion tech, Mukha impressed me with its accuracy. The virtual try-on for eyewear is spot-on, " +
       "and the monetization feature lets me earn from my creative content. It's like Instagram meets virtual shopping.",
     avatar: "https://randomuser.me/api/portraits/men/2.jpg",
   },
@@ -40,7 +39,7 @@ const testimonials = [
     company: "Freelance",
     testimonial:
       "The lipstick and makeup try-on feature is a game-changer for my clients. I can show them different looks virtually " +
-      "before applying anything. Face Me has become an essential tool in my professional kit.",
+      "before applying anything. Mukha has become an essential tool in my professional kit.",
     avatar: "https://randomuser.me/api/portraits/women/3.jpg",
   },
   {
@@ -49,7 +48,7 @@ const testimonials = [
     designation: "Online Shopper",
     company: "Tech Enthusiast",
     testimonial:
-      "I was always hesitant to buy glasses online, but Face Me solved that problem. The virtual try-on is so realistic " +
+      "I was always hesitant to buy glasses online, but Mukha solved that problem. The virtual try-on is so realistic " +
       "that I now confidently shop for eyewear online. Plus, the community aspect makes it fun to discover new styles.",
     avatar: "https://randomuser.me/api/portraits/men/4.jpg",
   },
@@ -59,7 +58,7 @@ const testimonials = [
     designation: "Style Influencer",
     company: "FashionForward",
     testimonial:
-      "Face Me turned my passion for styling into actual earnings! My followers love seeing my virtual looks, " +
+      "Mukha turned my passion for styling into actual earnings! My followers love seeing my virtual looks, " +
       "and I earn credits from their engagement. It's the perfect platform for style enthusiasts like me.",
     avatar: "https://randomuser.me/api/portraits/women/5.jpg",
   },
@@ -69,7 +68,7 @@ const testimonials = [
     designation: "Fashion Student",
     company: "Design Institute",
     testimonial:
-      "As a fashion student, Face Me helps me experiment with different styling concepts without any cost. " +
+      "As a fashion student, Mukha helps me experiment with different styling concepts without any cost. " +
       "The AI technology is fascinating, and I use it to create mood boards and test accessory combinations for my projects.",
     avatar: "https://randomuser.me/api/portraits/men/6.jpg",
   },
@@ -138,7 +137,7 @@ const TestimonialCard = ({
         <div className="w-full h-full flex items-center justify-center">
           <div className="text-center space-y-4">
             <div className="text-4xl">👤</div>
-            <div className="text-lg font-bold text-primary">Face Me</div>
+            <div className="text-lg font-bold text-primary">Mukha</div>
             <div className="text-xs text-muted-foreground px-4">
               Virtual Try-On Platform
             </div>
@@ -183,7 +182,7 @@ const TestimonialCard = ({
           </div>
         </div>
         <p className="mt-6 text-lg sm:text-2xl lg:text-[1.75rem] xl:text-3xl leading-normal lg:!leading-normal font-semibold tracking-tight">
-          "{testimonial.testimonial}"
+          &ldquo;{testimonial.testimonial}&rdquo;
         </p>
         <div className="flex sm:hidden md:flex mt-6 items-center gap-4">
           <Avatar>

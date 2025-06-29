@@ -41,7 +41,7 @@ const footerSections = [
     title: "Company",
     links: [
       {
-        title: "About Face Me",
+        title: "About Mukha",
         href: "#",
       },
       {
@@ -204,7 +204,7 @@ const Footer = () => {
         <span className="text-muted-foreground text-center xs:text-start">
           &copy; {new Date().getFullYear()}{" "}
           <Link href="/" className="text-primary hover:underline">
-            Face Me
+            Mukha
           </Link>
           . All rights reserved. Powered by AI.
         </span>
