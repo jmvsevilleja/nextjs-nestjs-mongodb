@@ -38,6 +38,11 @@ const GET_ALL_FACES = gql`
       isViewed
       createdAt
       updatedAt
+      expression
+      style
+      makeup
+      accessories
+      productsUsed
     }
   }
 `;
@@ -47,6 +52,31 @@ const GET_WALLET = gql`
     myWallet {
       id
       credits
+    }
+  }
+`;
+
+const GET_USER_PRODUCTS = gql`
+  query GetUserProducts {
+    userProducts {
+      id
+      product {
+        id
+        name
+        description
+        price
+        imageUrl
+        category {
+          id
+          name
+          parentCategory {
+            id
+            name
+          }
+        }
+      }
+      purchaseDate
+      isUsed
     }
   }
 `;
@@ -88,6 +118,11 @@ export interface Face {
   createdAt: Date;
   isLiked?: boolean;
   isViewed?: boolean;
+  expression?: string;
+  style?: string;
+  makeup?: string;
+  accessories?: string;
+  productsUsed?: string[];
 }
 
 export default function FacesPage() {
@@ -105,6 +140,10 @@ export default function FacesPage() {
 
   // GraphQL queries and mutations
   const { data: walletData, refetch: refetchWallet } = useQuery(GET_WALLET, {
+    skip: !session,
+  });
+
+  const { data: productsData } = useQuery(GET_USER_PRODUCTS, {
     skip: !session,
   });
 
@@ -338,6 +377,8 @@ export default function FacesPage() {
     }`;
   };
 
+  const userProducts = productsData?.userProducts || [];
+
   return (
     <>
       <Navbar />
@@ -385,6 +426,7 @@ export default function FacesPage() {
           hasMoreFaces={hasMoreFaces}
           handleFaceClick={handleFaceClick}
           handleLike={handleLike}
+          userProducts={userProducts}
         />
 
         {/* Loading More Indicator */}
