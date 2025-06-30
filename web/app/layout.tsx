@@ -12,9 +12,9 @@ const fontSans = FontSans({
 });
 
 export const metadata = {
-  title: "Face Me - AI-Powered Virtual Try-On Platform",
+  title: "Mukha - AI-Powered Virtual Try-On Platform",
   description:
-    "See how you'd actually look wearing eyeglasses, lipstick, hats, or earrings before you buy. Create stunning AI-generated looks, share them with the community, and monetize your style with Face Me.",
+    "See how you'd actually look wearing eyeglasses, lipstick, hats, or earrings before you buy. Create stunning AI-generated looks, share them with the community, and monetize your style with Mukha.",
 };
 
 export default function RootLayout({
