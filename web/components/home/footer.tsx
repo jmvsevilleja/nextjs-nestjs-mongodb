@@ -164,12 +164,12 @@ const Footer = () => {
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-lg">
-                F
+                M
               </span>
             </div>
             <div className="text-xl font-bold">
-              <span className="text-primary">Face</span>
-              <span className="text-muted-foreground">Me</span>
+              <span className="text-primary">Muk</span>
+              <span className="text-muted-foreground">ha</span>
             </div>
           </div>
 
