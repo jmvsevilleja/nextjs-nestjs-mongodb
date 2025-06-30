@@ -7,6 +7,23 @@ import Link from "next/link";
 const Hero = () => {
   return (
     <div className="min-h-[calc(100vh-4rem)] w-full flex items-center justify-center overflow-hidden border-b border-accent">
+      {/* Bolt Badge - Absolute positioned top right */}
+      <div className="absolute top-20 right-4 z-10">
+        <a
+          href="https://bolt.new/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block hover:scale-105 transition-transform duration-200"
+        >
+          <Image
+            src="https://ixi2mx3eecfmyfha.public.blob.vercel-storage.com/black_circle_360x360-WyJ6u7yEcKF8GijdGB6yyiQIeVrEn8.png"
+            alt="Bolt Hackathon Badge"
+            width={100}
+            height={100}
+            className="rounded-full shadow-lg"
+          />
+        </a>
+      </div>
       <div className="max-w-screen-xl w-full flex flex-col lg:flex-row mx-auto items-center justify-between gap-y-14 gap-x-10 px-6 py-12 lg:py-0">
         <div className="max-w-xl">
           <Badge className="rounded-full py-1 border-none">
